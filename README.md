@@ -17,15 +17,16 @@ A collection of custom dashboard cards for [Home Assistant](https://www.home-ass
 3. Search for **Bastide Cards** in HACS and install it.
 4. Reload your browser.
 
-## Language
+## Languages
 
-Cards follow your Home Assistant language. English and French are supported.
+Cards follow the language set in your Home Assistant user profile.
 
----
+| Language | Status |
+| --- | --- |
+| English | Supported |
+| French | Supported |
 
-### En français
-
-Bastide Cards est une collection de cartes pour les tableaux de bord de Home Assistant, installable avec HACS. Les cartes s'affichent dans la langue de votre Home Assistant (français ou anglais).
+Any other language falls back to English.
 
 ## License
 
