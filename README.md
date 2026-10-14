@@ -34,7 +34,7 @@ For homes with heat pumps, a boiler, or both. The card answers three questions a
 
 In summer, when the heat pumps are cooling, the switch-over gauge is hidden and the card shows the air conditioning instead.
 
-Tap a device, the season or the presence line to open its details.
+Tap a device, the season, a threshold or the presence line to open its details, and change it there. Thresholds read from helpers show as chips under the gauge.
 
 ### Configuration
 
@@ -85,7 +85,7 @@ bastide-boiler-color: "#ef6c00"
 
 ## Style
 
-Every card is built from the same pieces: a header with a round icon and an optional chip, a headline with a coloured dot, a list of tappable rows, and a footer line. Text colours, dividers, the card background and the font come from your Home Assistant theme.
+Every card is built from the same pieces: a header with a round icon, a headline with a coloured dot, a list of tappable rows, a footer line, and chips for values you can tap to change (a season, a threshold). Text colours, dividers, the card background and the font come from your Home Assistant theme.
 
 Two accent colours are shared by the whole pack. A theme can override them for all cards at once:
 

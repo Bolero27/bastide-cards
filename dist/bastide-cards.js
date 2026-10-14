@@ -10,7 +10,7 @@
  *   4. The cards themselves.
  */
 
-const BASTIDE_VERSION = '0.2.0';
+const BASTIDE_VERSION = '0.3.0';
 const BASTIDE_REPO = 'https://github.com/Bolero27/bastide-cards';
 
 /* ------------------------------------------------------------------------ */
@@ -34,6 +34,9 @@ const STRINGS = {
       cool_reason: 'Outdoor {outdoor}, the house is being cooled',
       off_reason: 'Nothing is running',
       gauge_label: 'Outdoor {outdoor}, switch-over at {threshold}',
+      threshold_boiler: 'Boiler threshold: {value}',
+      threshold_hp: 'Heat pump threshold: {value}',
+      threshold_single: 'Switch-over point: {value}',
       zone_boiler: 'Boiler',
       zone_hp: 'Heat pump',
       heating: 'Heating',
@@ -81,6 +84,9 @@ const STRINGS = {
       cool_reason: 'Extérieur {outdoor}, la maison est rafraîchie',
       off_reason: 'Aucun appareil en marche',
       gauge_label: 'Extérieur {outdoor}, bascule à {threshold}',
+      threshold_boiler: 'Seuil chaudière : {value}',
+      threshold_hp: 'Seuil PAC : {value}',
+      threshold_single: 'Seuil de bascule : {value}',
       zone_boiler: 'Chaudière',
       zone_hp: 'PAC',
       heating: 'Chauffe',
@@ -291,12 +297,23 @@ const BASE_STYLES = `
     white-space: nowrap;
   }
   .chip {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-height: 24px;
     padding: 4px 10px;
     border-radius: 999px;
     font-size: 12px;
+    line-height: 16px;
     font-weight: 500;
     white-space: nowrap;
     background: var(--bc-surface);
+  }
+  button.chip:hover {
+    background: color-mix(in srgb, var(--primary-text-color) 12%, transparent);
+  }
+  span.chip {
+    cursor: default;
   }
   .status {
     display: flex;
@@ -385,15 +402,21 @@ const BASE_STYLES = `
 // markup, which keeps every card of the pack looking the same. Every text is
 // escaped here; icons are `mdi:` names chosen by the cards.
 const ui = {
+  // A small rounded value. With an entity it is a button that opens the
+  // entity's details, where the value can be changed.
+  chip({ entityId, text, label }) {
+    const named = label ? ` title="${escapeHtml(label)}"` : '';
+    if (!entityId) return `<span class="chip"${named}>${escapeHtml(text)}</span>`;
+    const spoken = label ? ` aria-label="${escapeHtml(label)}"` : '';
+    return `<button type="button" class="chip" data-entity="${escapeHtml(entityId)}"${named}${spoken}>${escapeHtml(text)}</button>`;
+  },
+
   header({ icon, title, accent = 'neutral', chip }) {
-    const chipHtml = chip
-      ? `<button type="button" class="chip" data-entity="${escapeHtml(chip.entityId)}">${escapeHtml(chip.text)}</button>`
-      : '';
     return `
       <div class="header accent-${accent}">
         <span class="icon"><ha-icon icon="${icon}"></ha-icon></span>
         <span class="title">${escapeHtml(title)}</span>
-        ${chipHtml}
+        ${chip ? ui.chip(chip) : ''}
       </div>`;
   },
 
@@ -603,19 +626,20 @@ const CLIMATE_STYLES = `
     flex-direction: column;
     gap: 6px;
   }
-  .gauge-value, .gauge-labels {
-    position: relative;
+  .gauge-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
   .gauge-value {
+    position: relative;
     height: 20px;
   }
-  .gauge-value span, .gauge-labels span {
+  .gauge-value span {
     position: absolute;
     top: 0;
-    white-space: nowrap;
-  }
-  .gauge-value span {
     transform: translateX(-50%);
+    white-space: nowrap;
     font-size: 13px;
     line-height: 20px;
     font-weight: 500;
@@ -660,15 +684,28 @@ const CLIMATE_STYLES = `
     background: var(--primary-text-color);
     border: 3px solid var(--ha-card-background, var(--card-background-color, #fff));
   }
+  /* Laid out in a row, so the threshold chips never cover the zone names,
+     however narrow the card: the spacers only push them towards the band. */
   .gauge-labels {
-    height: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 28px;
     font-size: 12px;
-    line-height: 16px;
     color: var(--secondary-text-color);
   }
-  .gauge-labels .start { left: 0; }
-  .gauge-labels .end { right: 0; }
-  .gauge-labels .mid { transform: translateX(-50%); }
+  .zone-label {
+    white-space: nowrap;
+  }
+  .spacer {
+    flex-basis: 0;
+    min-width: 0;
+  }
+  .thresholds {
+    display: flex;
+    gap: 4px;
+    color: var(--primary-text-color);
+  }
 `;
 
 class BastideClimateCard extends BastideCard {
@@ -736,13 +773,21 @@ class BastideClimateCard extends BastideCard {
   }
 
   // The switch-over band: the boiler takes over below `low`, the heat pumps
-  // above `high`. With a single threshold, low and high are equal.
+  // above `high`. Each edge keeps the helper it came from, if any, so it can
+  // be edited from the card. With a single threshold, both edges are the same.
   _thresholds() {
+    const hass = this._hass;
     const config = this._config;
     const fixed = toNumber(config.switch_over) ?? CLIMATE_DEFAULTS.switch_over;
-    let low = entityNumber(this._hass, config.boiler_threshold_entity) ?? fixed;
-    let high = entityNumber(this._hass, config.heat_pump_threshold_entity) ?? low;
-    if (high < low) [low, high] = [high, low];
+    const boilerValue = entityNumber(hass, config.boiler_threshold_entity);
+    const pumpValue = entityNumber(hass, config.heat_pump_threshold_entity);
+    let low = boilerValue === null
+      ? { value: fixed, entityId: null }
+      : { value: boilerValue, entityId: config.boiler_threshold_entity };
+    let high = pumpValue === null
+      ? low
+      : { value: pumpValue, entityId: config.heat_pump_threshold_entity };
+    if (high.value < low.value) [low, high] = [high, low];
     return { low, high };
   }
 
@@ -777,7 +822,9 @@ class BastideClimateCard extends BastideCard {
     const outdoorState = config.outdoor_entity ? hass.states[config.outdoor_entity] : undefined;
     const outdoor = entityNumber(hass, config.outdoor_entity);
     const outdoorUnit = outdoorState?.attributes?.unit_of_measurement || unit;
-    const { low, high } = this._thresholds();
+    const edges = this._thresholds();
+    const low = edges.low.value;
+    const high = edges.high.value;
     const outdoorText = outdoor === null ? '' : formatTemperature(hass, outdoor, outdoorUnit, 1);
     const lowText = formatTemperature(hass, low, outdoorUnit);
     const highText = formatTemperature(hass, high, outdoorUnit);
@@ -814,7 +861,7 @@ class BastideClimateCard extends BastideCard {
         chip: isUsable(seasonState) ? { entityId: config.season_entity, text: formatState(hass, seasonState) } : null,
       }),
       ui.status({ headline: t(status), reason, accent }),
-      outdoor !== null && !cooling ? this._gaugeHtml({ outdoor, low, high, outdoorText, bandText }) : '',
+      outdoor !== null && !cooling ? this._gaugeHtml({ outdoor, edges, unit: outdoorUnit, outdoorText, bandText }) : '',
       ui.list(rows),
       isUsable(presenceState)
         ? ui.footer({
@@ -825,8 +872,12 @@ class BastideClimateCard extends BastideCard {
     ].join('');
   }
 
-  _gaugeHtml({ outdoor, low, high, outdoorText, bandText }) {
+  _gaugeHtml({ outdoor, edges, unit, outdoorText, bandText }) {
+    const hass = this._hass;
     const t = (key, vars) => this.t(`climate.${key}`, vars);
+    const low = edges.low.value;
+    const high = edges.high.value;
+    const single = edges.low === edges.high;
     let min = toNumber(this._config.gauge_min) ?? CLIMATE_DEFAULTS.gauge_min;
     let max = toNumber(this._config.gauge_max) ?? CLIMATE_DEFAULTS.gauge_max;
     if (max <= min) [min, max] = [CLIMATE_DEFAULTS.gauge_min, CLIMATE_DEFAULTS.gauge_max];
@@ -837,26 +888,40 @@ class BastideClimateCard extends BastideCard {
     const highPct = percent(high);
     // Keep the floating labels inside the card.
     const valueLeft = Math.min(88, Math.max(12, marker));
-    const bandLabelLeft = Math.min(80, Math.max(20, (lowPct + highPct) / 2));
-    const ticks = low === high
+    const bandCentre = (lowPct + highPct) / 2;
+    const ticks = single
       ? `<span class="threshold" style="left: ${lowPct.toFixed(2)}%"></span>`
       : `<span class="threshold" style="left: ${lowPct.toFixed(2)}%"></span>
          <span class="threshold" style="left: ${highPct.toFixed(2)}%"></span>`;
 
+    // One chip per threshold. A threshold read from a helper opens it when
+    // tapped, so it can be changed from the card.
+    const chip = (edge, key) => {
+      const value = formatTemperature(hass, edge.value, unit);
+      return ui.chip({ entityId: edge.entityId, text: value, label: t(key, { value }) });
+    };
+    const chips = single
+      ? chip(edges.low, 'threshold_single')
+      : chip(edges.low, 'threshold_boiler') + chip(edges.high, 'threshold_hp');
+
     return `
-      <div class="gauge" role="img" aria-label="${escapeHtml(t('gauge_label', { outdoor: outdoorText, threshold: bandText }))}">
-        <div class="gauge-value" aria-hidden="true"><span style="left: ${valueLeft.toFixed(2)}%">${escapeHtml(outdoorText)}</span></div>
-        <div class="gauge-bar" aria-hidden="true">
-          <span class="zone-boiler" style="width: ${lowPct.toFixed(2)}%"></span>
-          <span class="zone-band" style="width: ${(highPct - lowPct).toFixed(2)}%"></span>
-          <span class="zone-hp"></span>
-          ${ticks}
-          <span class="marker" style="left: ${marker.toFixed(2)}%"></span>
+      <div class="gauge">
+        <div class="gauge-scale" role="img" aria-label="${escapeHtml(t('gauge_label', { outdoor: outdoorText, threshold: bandText }))}">
+          <div class="gauge-value" aria-hidden="true"><span style="left: ${valueLeft.toFixed(2)}%">${escapeHtml(outdoorText)}</span></div>
+          <div class="gauge-bar" aria-hidden="true">
+            <span class="zone-boiler" style="width: ${lowPct.toFixed(2)}%"></span>
+            <span class="zone-band" style="width: ${(highPct - lowPct).toFixed(2)}%"></span>
+            <span class="zone-hp"></span>
+            ${ticks}
+            <span class="marker" style="left: ${marker.toFixed(2)}%"></span>
+          </div>
         </div>
-        <div class="gauge-labels" aria-hidden="true">
-          <span class="start">${escapeHtml(t('zone_boiler'))}</span>
-          <span class="mid" style="left: ${bandLabelLeft.toFixed(2)}%">${escapeHtml(bandText)}</span>
-          <span class="end">${escapeHtml(t('zone_hp'))}</span>
+        <div class="gauge-labels">
+          <span class="zone-label">${escapeHtml(t('zone_boiler'))}</span>
+          <span class="spacer" style="flex-grow: ${bandCentre.toFixed(2)}"></span>
+          <div class="thresholds">${chips}</div>
+          <span class="spacer" style="flex-grow: ${(100 - bandCentre).toFixed(2)}"></span>
+          <span class="zone-label">${escapeHtml(t('zone_hp'))}</span>
         </div>
       </div>`;
   }
