@@ -7,6 +7,10 @@ All cards share one look, so they sit together naturally on a dashboard. Every c
 | Card | Type | What it shows |
 | --- | --- | --- |
 | [Climate](#climate-card) | `custom:bastide-climate-card` | Which heat source is running and why in winter, the air conditioning in summer. |
+| [Presence](#presence-card) | `custom:bastide-presence-card` | The current presence mode in large type, one-tap mode buttons, outdoor temperature and season. |
+| [Entities](#entities-card) | `custom:bastide-entities-card` | A titled list of devices with on/off switches. |
+
+For a dark, game-HUD look across the whole dashboard, pair the cards with [Bastide Theme](https://github.com/Bolero27/bastide-theme).
 
 ## Installation
 
@@ -83,16 +87,66 @@ bastide-heat-pump-color: "#0277bd"
 bastide-boiler-color: "#ef6c00"
 ```
 
+## Presence card
+
+Shows the current presence mode of an `input_select` (or `select`) in large type, with one button per mode. Tap a button to switch mode. The outdoor temperature and the season sit on the right.
+
+```yaml
+type: custom:bastide-presence-card
+entity: input_select.presence
+outdoor_entity: sensor.outdoor_temperature
+season_entity: input_select.season
+modes:
+  Home:
+    icon: mdi:home-heart
+    color: orange
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `entity` | | The `input_select` or `select` holding the presence modes. |
+| `title` | `Home` | Small label above the current mode. The default is translated. |
+| `outdoor_entity` | | Outdoor temperature sensor. |
+| `season_entity` | | Shown as a chip (`input_select`, `select` or `sensor`). |
+| `modes` | | Per mode: `icon` and `color` (one of the accent names below). Common mode names get an icon automatically. |
+
+## Entities card
+
+A titled list of devices. Lights, switches, input booleans, fans and automations get an on/off switch; other entities show their state. Tap a row to open its details.
+
+```yaml
+type: custom:bastide-entities-card
+title: Office
+icon: mdi:desk
+color: yellow
+entities:
+  - switch.computer
+  - light.desk_lamp
+  - entity: media_player.tv
+    name: TV
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `title` | | Card title. |
+| `icon` | `mdi:view-list` | Icon next to the title. |
+| `color` | `orange` | Accent colour, one of the accent names below. |
+| `entities` | | Entity IDs, or objects with `entity`, and optionally `name`, `icon` and `secondary`. |
+
 ## Style
 
-Every card is built from the same pieces: a header with a round icon, a headline with a coloured dot, a list of tappable rows, a footer line, and chips for values you can tap to change (a season, a threshold). Text colours, dividers, the card background and the font come from your Home Assistant theme.
+Every card is built from the same pieces: a header with a round icon, a headline with a coloured dot, a list of tappable rows, a footer line, chips for values you can tap to change (a season, a threshold) and on/off switches. Text colours, dividers, the card background and the font come from your Home Assistant theme.
 
-Two accent colours are shared by the whole pack. A theme can override them for all cards at once:
+Eight accent colours are shared by the whole pack: `orange`, `blue`, `pink`, `violet`, `teal`, `yellow`, `green` and `steel`. A theme can override any of them for all cards at once:
 
 ```yaml
 bastide-blue: "#0277bd"
 bastide-orange: "#ef6c00"
 ```
+
+### HUD look
+
+When the theme sets `bastide-style: hud` (as [Bastide Theme](https://github.com/Bolero27/bastide-theme) does), every card switches to a game-HUD look: bevelled corners, slanted buttons and chips, condensed uppercase titles. The cards then load the theme's fonts (Barlow and Barlow Condensed) from Google Fonts; set `bastide-fonts: none` in the theme to skip that request.
 
 ## Languages
 

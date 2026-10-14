@@ -10,7 +10,7 @@
  *   4. The cards themselves.
  */
 
-const BASTIDE_VERSION = '0.3.0';
+const BASTIDE_VERSION = '0.4.0';
 const BASTIDE_REPO = 'https://github.com/Bolero27/bastide-cards';
 
 /* ------------------------------------------------------------------------ */
@@ -51,7 +51,36 @@ const STRINGS = {
       with_target: '{status} · target {target}',
       setup: 'Choose your heat pumps and boilers in the card editor.',
     },
+    presence: {
+      title: 'Home',
+      outdoor: 'Outdoor',
+      modes: 'Presence modes',
+      unavailable: 'Unavailable',
+      setup: 'Choose the helper that holds your presence modes in the card editor.',
+    },
+    entities: {
+      setup: 'Choose entities in the card editor.',
+      unavailable: 'Unavailable',
+      missing: 'Entity not found',
+      toggle: 'Turn {name} on or off',
+    },
     editor: {
+      presence: {
+        entity: 'Presence modes (input_select or select)',
+        title: 'Title',
+        outdoor_entity: 'Outdoor temperature sensor (optional)',
+        season_entity: 'Season (optional)',
+      },
+      entities: {
+        title: 'Title',
+        icon: 'Icon',
+        color: 'Colour',
+        entities: 'Entities',
+      },
+      colors: {
+        orange: 'Orange', blue: 'Blue', pink: 'Pink', violet: 'Violet',
+        teal: 'Teal', yellow: 'Yellow', green: 'Green', steel: 'Steel blue',
+      },
       climate: {
         title: 'Title',
         heat_pumps: 'Heat pumps',
@@ -101,7 +130,36 @@ const STRINGS = {
       with_target: '{status} · consigne {target}',
       setup: 'Choisissez vos pompes à chaleur et chaudières dans l’éditeur de la carte.',
     },
+    presence: {
+      title: 'Maison',
+      outdoor: 'Extérieur',
+      modes: 'Modes de présence',
+      unavailable: 'Indisponible',
+      setup: 'Choisissez le helper qui contient vos modes de présence dans l’éditeur de la carte.',
+    },
+    entities: {
+      setup: 'Choisissez les entités dans l’éditeur de la carte.',
+      unavailable: 'Indisponible',
+      missing: 'Entité introuvable',
+      toggle: 'Allumer ou éteindre {name}',
+    },
     editor: {
+      presence: {
+        entity: 'Modes de présence (input_select ou select)',
+        title: 'Titre',
+        outdoor_entity: 'Capteur de température extérieure (facultatif)',
+        season_entity: 'Saison (facultatif)',
+      },
+      entities: {
+        title: 'Titre',
+        icon: 'Icône',
+        color: 'Couleur',
+        entities: 'Entités',
+      },
+      colors: {
+        orange: 'Orange', blue: 'Bleu', pink: 'Rose', violet: 'Violet',
+        teal: 'Turquoise', yellow: 'Jaune', green: 'Vert', steel: 'Bleu acier',
+      },
       climate: {
         title: 'Titre',
         heat_pumps: 'Pompes à chaleur',
@@ -228,22 +286,58 @@ function fireMoreInfo(node, entityId) {
   }));
 }
 
+// The Bastide theme sets `bastide-style: hud`. Cards then switch to their HUD
+// look and load the theme's fonts, unless the theme sets `bastide-fonts: none`.
+function themeVar(node, name) {
+  return getComputedStyle(node).getPropertyValue(`--${name}`).trim();
+}
+
+function loadHudFonts(node) {
+  if (document.getElementById('bastide-fonts') || themeVar(node, 'bastide-fonts') === 'none') return;
+  const link = document.createElement('link');
+  link.id = 'bastide-fonts';
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,700;1,800&family=Barlow:wght@400;500;600&display=swap';
+  document.head.appendChild(link);
+}
+
+// Accent colours shared by the whole pack, in a fixed order.
+const ACCENTS = ['orange', 'blue', 'pink', 'violet', 'teal', 'yellow', 'green', 'steel'];
+
+function accentName(value, fallback = 'orange') {
+  return ACCENTS.includes(value) ? value : fallback;
+}
+
 /* ------------------------------------------------------------------------ */
 /* 2. The Bastide style                                                     */
 /* ------------------------------------------------------------------------ */
 
 // Shared by every card. Colours come from the Home Assistant theme, except the
-// accents, which themes can override with --bastide-blue / --bastide-orange.
+// accents, which themes can override with the --bastide-<colour> variables.
 const BASE_STYLES = `
   ha-card {
-    --bc-blue: var(--bastide-blue, #0277bd);
     --bc-orange: var(--bastide-orange, #ef6c00);
+    --bc-blue: var(--bastide-blue, #0277bd);
+    --bc-pink: var(--bastide-pink, #c2185b);
+    --bc-violet: var(--bastide-violet, #5e35b1);
+    --bc-teal: var(--bastide-teal, #00897b);
+    --bc-yellow: var(--bastide-yellow, #a87900);
+    --bc-green: var(--bastide-green, #2e7d32);
+    --bc-steel: var(--bastide-steel, #45648f);
+    --bc-on-accent: #ffffff;
     --bc-tint: 14%;
     --bc-surface: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
   }
-  ha-card.dark {
-    --bc-blue: var(--bastide-blue, #3aa8f0);
+  ha-card.dark, ha-card.hud {
     --bc-orange: var(--bastide-orange, #ffb74d);
+    --bc-blue: var(--bastide-blue, #3aa8f0);
+    --bc-pink: var(--bastide-pink, #ff5fa2);
+    --bc-violet: var(--bastide-violet, #a68bff);
+    --bc-teal: var(--bastide-teal, #2ee6c5);
+    --bc-yellow: var(--bastide-yellow, #ffd84d);
+    --bc-green: var(--bastide-green, #4ade80);
+    --bc-steel: var(--bastide-steel, #8fb3e8);
+    --bc-on-accent: #0b111c;
     --bc-tint: 20%;
   }
   .content {
@@ -253,8 +347,14 @@ const BASE_STYLES = `
     gap: 16px;
     color: var(--primary-text-color);
   }
-  .accent-blue { --accent: var(--bc-blue); }
   .accent-orange { --accent: var(--bc-orange); }
+  .accent-blue { --accent: var(--bc-blue); }
+  .accent-pink { --accent: var(--bc-pink); }
+  .accent-violet { --accent: var(--bc-violet); }
+  .accent-teal { --accent: var(--bc-teal); }
+  .accent-yellow { --accent: var(--bc-yellow); }
+  .accent-green { --accent: var(--bc-green); }
+  .accent-steel { --accent: var(--bc-steel); }
   .accent-neutral { --accent: var(--secondary-text-color); }
   button {
     font: inherit;
@@ -396,6 +496,94 @@ const BASE_STYLES = `
     line-height: 16px;
     color: var(--secondary-text-color);
   }
+  .row-main {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .toggle {
+    flex-shrink: 0;
+    min-width: 60px;
+    min-height: 36px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    border: 2px solid var(--divider-color);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--secondary-text-color);
+  }
+  .toggle.on {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bc-on-accent);
+  }
+
+  /* HUD look, switched on by the Bastide theme. */
+  ha-card.hud {
+    border-radius: 0;
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+  }
+  ha-card.hud .title,
+  ha-card.hud .headline,
+  ha-card.hud .name,
+  ha-card.hud .value,
+  ha-card.hud .chip,
+  ha-card.hud .toggle {
+    font-family: var(--ha-font-family-heading, inherit);
+  }
+  ha-card.hud .title,
+  ha-card.hud .headline {
+    font-style: italic;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  ha-card.hud .title { font-size: 20px; }
+  ha-card.hud .headline { font-size: 26px; line-height: 30px; }
+  ha-card.hud .name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  ha-card.hud .value {
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 800;
+  }
+  ha-card.hud .chip,
+  ha-card.hud .toggle {
+    font-size: 13px;
+    font-style: italic;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  ha-card.hud .icon,
+  ha-card.hud .chip,
+  ha-card.hud .toggle {
+    border-radius: 0;
+    transform: skewX(-12deg);
+  }
+  ha-card.hud .icon > *,
+  ha-card.hud .chip > *,
+  ha-card.hud .toggle > * {
+    display: inline-block;
+    transform: skewX(12deg);
+  }
+  ha-card.hud .dot {
+    border-radius: 0;
+    transform: rotate(45deg);
+  }
+  ha-card.hud .row { border-radius: 0; }
+  ha-card.hud .list,
+  ha-card.hud .footer { border-top-width: 2px; }
 `;
 
 // HTML building blocks. Cards assemble these instead of writing their own
@@ -406,9 +594,37 @@ const ui = {
   // entity's details, where the value can be changed.
   chip({ entityId, text, label }) {
     const named = label ? ` title="${escapeHtml(label)}"` : '';
-    if (!entityId) return `<span class="chip"${named}>${escapeHtml(text)}</span>`;
+    const inner = `<span>${escapeHtml(text)}</span>`;
+    if (!entityId) return `<span class="chip"${named}>${inner}</span>`;
     const spoken = label ? ` aria-label="${escapeHtml(label)}"` : '';
-    return `<button type="button" class="chip" data-entity="${escapeHtml(entityId)}"${named}${spoken}>${escapeHtml(text)}</button>`;
+    return `<button type="button" class="chip" data-entity="${escapeHtml(entityId)}"${named}${spoken}>${inner}</button>`;
+  },
+
+  // A row with an on/off switch on the right. Tapping the row opens the
+  // entity's details; tapping the switch toggles it.
+  toggleRow({ entityId, icon, name, state, value, accent = 'neutral', active = false, toggle }) {
+    const switchHtml = toggle
+      ? `<button type="button" class="toggle${toggle.on ? ' on' : ''}" aria-pressed="${toggle.on ? 'true' : 'false'}"
+           aria-label="${escapeHtml(toggle.label)}" ${ui.action('homeassistant.toggle', { entity_id: entityId })}>
+           <span>${toggle.on ? 'ON' : 'OFF'}</span></button>`
+      : '';
+    return `
+      <div class="row accent-${accent}${active ? ' active' : ''}">
+        <button type="button" class="row-main" data-entity="${escapeHtml(entityId)}">
+          <span class="icon"><ha-icon icon="${escapeHtml(icon)}"></ha-icon></span>
+          <span class="text">
+            <span class="name">${escapeHtml(name)}</span>
+            ${state ? `<span class="state">${escapeHtml(state)}</span>` : ''}
+          </span>
+          ${value ? `<span class="value">${escapeHtml(value)}</span>` : ''}
+        </button>
+        ${switchHtml}
+      </div>`;
+  },
+
+  // Attributes that make a button call a Home Assistant action when tapped.
+  action(service, data) {
+    return `data-service="${escapeHtml(service)}" data-data="${escapeHtml(JSON.stringify(data))}"`;
   },
 
   header({ icon, title, accent = 'neutral', chip }) {
@@ -474,9 +690,27 @@ class BastideCard extends HTMLElement {
     this._seen = new Map();
     this._renderKey = '';
     this.shadowRoot.addEventListener('click', (ev) => {
-      const target = ev.target.closest('[data-entity]');
-      if (target && target.dataset.entity) fireMoreInfo(this, target.dataset.entity);
+      const target = ev.target.closest('[data-service], [data-entity]');
+      if (!target) return;
+      if (target.dataset.service && this._hass) {
+        const [domain, service] = target.dataset.service.split('.');
+        let data = {};
+        try {
+          data = JSON.parse(target.dataset.data || '{}');
+        } catch (err) {
+          data = {};
+        }
+        this._hass.callService(domain, service, data);
+        return;
+      }
+      if (target.dataset.entity) fireMoreInfo(this, target.dataset.entity);
     });
+  }
+
+  // The theme is only readable once the card is on the page.
+  connectedCallback() {
+    this._renderKey = '';
+    this._render();
   }
 
   setConfig(config) {
@@ -516,7 +750,12 @@ class BastideCard extends HTMLElement {
 
   _currentKey() {
     const hass = this._hass;
-    return [languageOf(hass), hass.themes?.darkMode ? 'dark' : 'light', hass.locale?.number_format || ''].join('|');
+    return [
+      languageOf(hass),
+      hass.themes?.darkMode ? 'dark' : 'light',
+      hass.themes?.theme || '',
+      hass.locale?.number_format || '',
+    ].join('|');
   }
 
   // Home Assistant sends a new `hass` on every state change in the house:
@@ -532,10 +771,12 @@ class BastideCard extends HTMLElement {
     const hass = this._hass;
     this._renderKey = this._currentKey();
     this._seen = new Map(this.watchedEntities().map((id) => [id, hass.states[id]]));
-    const dark = Boolean(hass.themes?.darkMode);
+    const hud = this.isConnected && themeVar(this, 'bastide-style') === 'hud';
+    if (hud) loadHudFonts(this);
+    const classes = [hass.themes?.darkMode ? 'dark' : '', hud ? 'hud' : ''].filter(Boolean).join(' ');
     this.shadowRoot.innerHTML = `
       <style>${BASE_STYLES}${this.constructor.styles}</style>
-      <ha-card class="${dark ? 'dark' : ''}">
+      <ha-card class="${classes}">
         <div class="content">${this.renderContent()}</div>
       </ha-card>`;
   }
@@ -928,6 +1169,309 @@ class BastideClimateCard extends BastideCard {
 }
 
 /* ------------------------------------------------------------------------ */
+/* 4b. Presence card                                                        */
+/* ------------------------------------------------------------------------ */
+
+// Default icon for a presence mode, guessed from its name (English or French).
+const PRESENCE_ICONS = [
+  [/^(pr[ée]sent|home|maison|at home)/i, 'mdi:home'],
+  [/^(soir|evening)/i, 'mdi:weather-sunset'],
+  [/^(nuit|night|sleep)/i, 'mdi:weather-night'],
+  [/^(absen|away)/i, 'mdi:exit-run'],
+  [/^(vacan|holiday|vacation)/i, 'mdi:airplane'],
+  [/^(invit|guest)/i, 'mdi:account-multiple'],
+];
+// Presence modes take the accents in this order; blue, kept for heat pumps, comes last.
+const MODE_ACCENTS = ['orange', 'pink', 'violet', 'steel', 'teal', 'yellow', 'green', 'blue'];
+
+const PRESENCE_STYLES = `
+  .presence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .presence-now {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .label {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--secondary-text-color);
+  }
+  .presence-mode {
+    font-size: 32px;
+    line-height: 38px;
+    font-weight: 600;
+  }
+  .presence-side {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .outdoor {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .outdoor-value {
+    font-size: 28px;
+    line-height: 32px;
+    font-weight: 600;
+  }
+  .modes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 8px;
+  }
+  .mode {
+    min-height: 60px;
+    padding: 6px;
+    box-sizing: border-box;
+    border: 2px solid var(--divider-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-text-color);
+    --mdc-icon-size: 22px;
+  }
+  .mode-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .mode ha-icon { color: var(--accent); }
+  .mode-name {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .mode.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bc-on-accent);
+  }
+  .mode.active ha-icon { color: var(--bc-on-accent); }
+  ha-card.hud .presence-mode,
+  ha-card.hud .outdoor-value {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-style: italic;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  ha-card.hud .presence-mode { font-size: 44px; line-height: 46px; }
+  ha-card.hud .outdoor-value { font-size: 36px; line-height: 38px; }
+  ha-card.hud .mode {
+    border-radius: 0;
+    transform: skewX(-12deg);
+  }
+  ha-card.hud .mode-inner { transform: skewX(12deg); }
+  ha-card.hud .mode-name {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 15px;
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+`;
+
+class BastidePresenceCard extends BastideCard {
+  static get styles() {
+    return PRESENCE_STYLES;
+  }
+
+  static getConfigForm() {
+    return {
+      schema: [
+        { name: 'entity', selector: { entity: { filter: [{ domain: 'input_select' }, { domain: 'select' }] } } },
+        { name: 'title', selector: { text: {} } },
+        { name: 'outdoor_entity', selector: { entity: { filter: { domain: 'sensor', device_class: 'temperature' } } } },
+        { name: 'season_entity', selector: { entity: { filter: [{ domain: 'input_select' }, { domain: 'select' }, { domain: 'sensor' }] } } },
+      ],
+      computeLabel: (schema) => (schema.name ? lookup(null, `editor.presence.${schema.name}`) : undefined),
+    };
+  }
+
+  static getStubConfig(hass) {
+    const ids = Object.keys(hass?.states || {});
+    const entity = ids.find((id) => id.startsWith('input_select.') && /presen|mode/i.test(id))
+      || ids.find((id) => id.startsWith('input_select.'));
+    return entity ? { entity } : {};
+  }
+
+  getCardSize() {
+    return 3;
+  }
+
+  watchedEntities() {
+    const config = this._config;
+    return [config.entity, config.outdoor_entity, config.season_entity].filter(Boolean);
+  }
+
+  _modeStyle(option, index) {
+    const custom = (this._config.modes || {})[option] || {};
+    const guessed = PRESENCE_ICONS.find(([pattern]) => pattern.test(option));
+    return {
+      icon: custom.icon || (guessed ? guessed[1] : 'mdi:checkbox-blank-circle-outline'),
+      accent: accentName(custom.color, MODE_ACCENTS[index % MODE_ACCENTS.length]),
+    };
+  }
+
+  renderContent() {
+    const hass = this._hass;
+    const config = this._config;
+    const t = (key, vars) => this.t(`presence.${key}`, vars);
+    const title = config.title || t('title');
+    const stateObj = config.entity ? hass.states[config.entity] : undefined;
+    if (!stateObj) {
+      return ui.header({ icon: 'mdi:home', title }) + ui.setup(t('setup'));
+    }
+
+    const options = stateObj.attributes?.options || [];
+    const current = stateObj.state;
+    const domain = config.entity.split('.')[0];
+    const currentIndex = options.indexOf(current);
+    const currentAccent = currentIndex >= 0 ? this._modeStyle(current, currentIndex).accent : 'neutral';
+
+    const outdoorState = config.outdoor_entity ? hass.states[config.outdoor_entity] : undefined;
+    const outdoor = entityNumber(hass, config.outdoor_entity);
+    const unit = outdoorState?.attributes?.unit_of_measurement || hass.config?.unit_system?.temperature || '°C';
+    const seasonState = config.season_entity ? hass.states[config.season_entity] : undefined;
+
+    const outdoorHtml = outdoor === null
+      ? ''
+      : `<button type="button" class="outdoor" data-entity="${escapeHtml(config.outdoor_entity)}">
+           <span class="outdoor-value">${escapeHtml(formatTemperature(hass, outdoor, unit, 1))}</span>
+           <span class="label">${escapeHtml(t('outdoor'))}</span>
+         </button>`;
+    const seasonHtml = isUsable(seasonState)
+      ? ui.chip({ entityId: config.season_entity, text: formatState(hass, seasonState) })
+      : '';
+
+    const modes = options.map((option, index) => {
+      const style = this._modeStyle(option, index);
+      const active = option === current;
+      return `
+        <button type="button" class="mode accent-${style.accent}${active ? ' active' : ''}" aria-pressed="${active ? 'true' : 'false'}"
+          ${ui.action(`${domain}.select_option`, { entity_id: config.entity, option })}>
+          <span class="mode-inner">
+            <ha-icon icon="${escapeHtml(style.icon)}"></ha-icon>
+            <span class="mode-name">${escapeHtml(option)}</span>
+          </span>
+        </button>`;
+    }).join('');
+
+    return `
+      <div class="presence">
+        <div class="presence-now accent-${currentAccent}">
+          <span class="label">${escapeHtml(title)}</span>
+          <button type="button" class="presence-mode" data-entity="${escapeHtml(config.entity)}">${escapeHtml(isUsable(stateObj) ? current : t('unavailable'))}</button>
+        </div>
+        <div class="presence-side">${outdoorHtml}${seasonHtml}</div>
+      </div>
+      <div class="modes" role="group" aria-label="${escapeHtml(t('modes'))}">${modes}</div>`;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* 4c. Entities card                                                        */
+/* ------------------------------------------------------------------------ */
+
+const TOGGLE_DOMAINS = ['light', 'switch', 'input_boolean', 'fan', 'automation'];
+const DOMAIN_ICONS = {
+  light: 'mdi:lightbulb', switch: 'mdi:power-plug', input_boolean: 'mdi:toggle-switch-outline',
+  fan: 'mdi:fan', automation: 'mdi:robot', media_player: 'mdi:television', climate: 'mdi:thermostat',
+  sensor: 'mdi:eye', binary_sensor: 'mdi:checkbox-blank-circle-outline', camera: 'mdi:cctv',
+  update: 'mdi:package-up', cover: 'mdi:window-shutter', lock: 'mdi:lock', person: 'mdi:account',
+};
+const IDLE_STATES = ['off', 'idle', 'standby', 'unavailable', 'unknown', 'closed', 'locked', 'not_home'];
+
+class BastideEntitiesCard extends BastideCard {
+  static getConfigForm() {
+    return {
+      schema: [
+        { name: 'title', selector: { text: {} } },
+        { name: 'icon', selector: { icon: {} } },
+        {
+          name: 'color',
+          selector: {
+            select: {
+              mode: 'dropdown',
+              options: ACCENTS.map((value) => ({ value, label: lookup(null, `editor.colors.${value}`) || value })),
+            },
+          },
+        },
+        { name: 'entities', selector: { entity: { multiple: true } } },
+      ],
+      computeLabel: (schema) => (schema.name ? lookup(null, `editor.entities.${schema.name}`) : undefined),
+    };
+  }
+
+  static getStubConfig(hass) {
+    const ids = Object.keys(hass?.states || {});
+    const entities = ids.filter((id) => /^(light|switch)\./.test(id)).slice(0, 3);
+    return { title: 'Bastide', icon: 'mdi:view-list', color: 'orange', entities };
+  }
+
+  getCardSize() {
+    return 1 + Math.max(1, this._items().length);
+  }
+
+  // Entities given as `light.x` or as `{ entity, name, icon }`.
+  _items() {
+    const list = Array.isArray(this._config?.entities) ? this._config.entities : [];
+    return list
+      .map((item) => (typeof item === 'string' ? { entity: item } : item))
+      .filter((item) => item && typeof item.entity === 'string' && item.entity.includes('.'));
+  }
+
+  watchedEntities() {
+    return this._items().map((item) => item.entity);
+  }
+
+  renderContent() {
+    const hass = this._hass;
+    const config = this._config;
+    const accent = accentName(config.color);
+    const items = this._items();
+    const header = ui.header({ icon: config.icon || 'mdi:view-list', title: config.title || '', accent });
+    if (!items.length) return header + ui.setup(this.t('entities.setup'));
+
+    const rows = items.map((item) => {
+      const stateObj = hass.states[item.entity];
+      const domain = item.entity.split('.')[0];
+      const name = item.name || stateObj?.attributes?.friendly_name || item.entity;
+      const icon = item.icon || stateObj?.attributes?.icon || DOMAIN_ICONS[domain] || 'mdi:circle-outline';
+      if (!stateObj) {
+        return ui.toggleRow({ entityId: item.entity, icon, name, state: this.t('entities.missing'), accent });
+      }
+      const usable = isUsable(stateObj);
+      const canToggle = usable && TOGGLE_DOMAINS.includes(domain);
+      const on = stateObj.state === 'on';
+      return ui.toggleRow({
+        entityId: item.entity,
+        icon,
+        name,
+        state: item.secondary || (canToggle ? formatState(hass, stateObj) : ''),
+        value: canToggle ? '' : (usable ? formatState(hass, stateObj) : this.t('entities.unavailable')),
+        accent,
+        active: canToggle ? on : !IDLE_STATES.includes(stateObj.state),
+        toggle: canToggle ? { on, label: this.t('entities.toggle', { name }) } : null,
+      });
+    });
+    return header + ui.list(rows);
+  }
+}
+
+/* ------------------------------------------------------------------------ */
 /* Registration                                                             */
 /* ------------------------------------------------------------------------ */
 
@@ -937,6 +1481,18 @@ const BASTIDE_CARDS = [
     element: BastideClimateCard,
     name: 'Bastide Climate',
     description: 'Which heat source is running and why in winter, the air conditioning in summer.',
+  },
+  {
+    type: 'bastide-presence-card',
+    element: BastidePresenceCard,
+    name: 'Bastide Presence',
+    description: 'The current presence mode in large type, one-tap mode buttons, outdoor temperature and season.',
+  },
+  {
+    type: 'bastide-entities-card',
+    element: BastideEntitiesCard,
+    name: 'Bastide Entities',
+    description: 'A titled list of devices with on/off switches.',
   },
 ];
 
