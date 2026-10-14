@@ -2,15 +2,19 @@
  * Bastide Cards: custom dashboard cards for Home Assistant.
  * https://github.com/Bolero27/bastide-cards
  *
- * Plain JavaScript, no build step. Every card lives in this file and shares
- * the helpers at the top.
+ * Plain JavaScript, no build step. Every card lives in this file and is built
+ * from the same pieces, so the whole pack shares one look:
+ *   1. Translations and helpers (languages, numbers, escaping).
+ *   2. The Bastide style: shared CSS and HTML building blocks.
+ *   3. BastideCard, the base class every card extends.
+ *   4. The cards themselves.
  */
 
-const BASTIDE_VERSION = '0.1.0';
+const BASTIDE_VERSION = '0.2.0';
 const BASTIDE_REPO = 'https://github.com/Bolero27/bastide-cards';
 
 /* ------------------------------------------------------------------------ */
-/* Translations                                                             */
+/* 1. Translations and helpers                                              */
 /* ------------------------------------------------------------------------ */
 
 // Cards follow the language of the Home Assistant user profile. Any language
@@ -26,6 +30,7 @@ const STRINGS = {
       all_off: 'Everything off',
       above: 'Outdoor {outdoor}, above the {threshold} switch-over point',
       below: 'Outdoor {outdoor}, below the {threshold} switch-over point',
+      between: 'Outdoor {outdoor}, between {low} and {high}: the current source stays on',
       cool_reason: 'Outdoor {outdoor}, the house is being cooled',
       off_reason: 'Nothing is running',
       gauge_label: 'Outdoor {outdoor}, switch-over at {threshold}',
@@ -49,8 +54,12 @@ const STRINGS = {
         heat_pumps: 'Heat pumps',
         boilers: 'Boilers',
         outdoor_entity: 'Outdoor temperature sensor',
-        switch_over: 'Switch-over temperature',
-        switch_over_help: 'Below this outdoor temperature, the boiler takes over from the heat pumps.',
+        boiler_threshold_entity: 'Boiler threshold (helper)',
+        boiler_threshold_entity_help: 'Below this outdoor temperature, the boiler takes over. Pick the helper your automations use, so the card always matches them.',
+        heat_pump_threshold_entity: 'Heat pump threshold (helper)',
+        heat_pump_threshold_entity_help: 'Above this outdoor temperature, the heat pumps take over again. Leave empty if it is the same as the boiler threshold.',
+        switch_over: 'Fixed switch-over temperature',
+        switch_over_help: 'Used when no helper is chosen.',
         season_entity: 'Season (optional)',
         presence_entity: 'Presence (optional)',
         gauge_min: 'Gauge minimum',
@@ -68,6 +77,7 @@ const STRINGS = {
       all_off: 'Tout est arrêté',
       above: 'Extérieur {outdoor}, au-dessus du seuil de {threshold}',
       below: 'Extérieur {outdoor}, sous le seuil de {threshold}',
+      between: 'Extérieur {outdoor}, entre {low} et {high} : la source actuelle est conservée',
       cool_reason: 'Extérieur {outdoor}, la maison est rafraîchie',
       off_reason: 'Aucun appareil en marche',
       gauge_label: 'Extérieur {outdoor}, bascule à {threshold}',
@@ -91,8 +101,12 @@ const STRINGS = {
         heat_pumps: 'Pompes à chaleur',
         boilers: 'Chaudières',
         outdoor_entity: 'Capteur de température extérieure',
-        switch_over: 'Température de bascule',
-        switch_over_help: 'Sous cette température extérieure, la chaudière prend le relais des pompes à chaleur.',
+        boiler_threshold_entity: 'Seuil chaudière (helper)',
+        boiler_threshold_entity_help: 'Sous cette température extérieure, la chaudière prend le relais. Choisissez le helper utilisé par vos automatisations : la carte restera toujours d’accord avec elles.',
+        heat_pump_threshold_entity: 'Seuil PAC (helper)',
+        heat_pump_threshold_entity_help: 'Au-dessus de cette température extérieure, les PAC reprennent la main. Laissez vide si c’est le même seuil que la chaudière.',
+        switch_over: 'Seuil fixe',
+        switch_over_help: 'Utilisé si aucun helper n’est choisi.',
         season_entity: 'Saison (facultatif)',
         presence_entity: 'Présence (facultatif)',
         gauge_min: 'Minimum de la jauge',
@@ -125,10 +139,6 @@ function translate(hass, key, vars = {}) {
   return text.replace(/\{(\w+)\}/g, (match, name) => (name in vars ? vars[name] : match));
 }
 
-/* ------------------------------------------------------------------------ */
-/* Shared helpers                                                           */
-/* ------------------------------------------------------------------------ */
-
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -155,23 +165,23 @@ function numberLocale(hass) {
   }
 }
 
+// Whole numbers stay whole (21), others keep one decimal (20.4).
 function formatNumber(hass, value, digits) {
+  const places = digits ?? (Number.isInteger(value) ? 0 : 1);
   const { locale, grouping } = numberLocale(hass);
   try {
     return new Intl.NumberFormat(locale, {
-      minimumFractionDigits: digits,
-      maximumFractionDigits: digits,
+      minimumFractionDigits: places,
+      maximumFractionDigits: places,
       useGrouping: grouping,
     }).format(value);
   } catch (err) {
-    return value.toFixed(digits);
+    return value.toFixed(places);
   }
 }
 
-// Whole numbers stay whole (21 °C), others keep one decimal (20.4 °C).
 function formatTemperature(hass, value, unit, digits) {
-  const places = digits ?? (Number.isInteger(value) ? 0 : 1);
-  return `${formatNumber(hass, value, places)} ${unit}`;
+  return `${formatNumber(hass, value, digits)} ${unit}`;
 }
 
 function formatState(hass, stateObj) {
@@ -186,6 +196,13 @@ function formatState(hass, stateObj) {
 
 function isUsable(stateObj) {
   return Boolean(stateObj) && stateObj.state !== 'unavailable' && stateObj.state !== 'unknown';
+}
+
+// Numeric value of an entity, or null when it is missing or not a number.
+function entityNumber(hass, entityId) {
+  if (!entityId) return null;
+  const stateObj = hass.states[entityId];
+  return isUsable(stateObj) ? toNumber(stateObj.state) : null;
 }
 
 // Accepts `climate.x`, `[climate.x, …]` or `[{ entity: climate.x }, …]`.
@@ -206,7 +223,303 @@ function fireMoreInfo(node, entityId) {
 }
 
 /* ------------------------------------------------------------------------ */
-/* Climate card                                                             */
+/* 2. The Bastide style                                                     */
+/* ------------------------------------------------------------------------ */
+
+// Shared by every card. Colours come from the Home Assistant theme, except the
+// accents, which themes can override with --bastide-blue / --bastide-orange.
+const BASE_STYLES = `
+  ha-card {
+    --bc-blue: var(--bastide-blue, #0277bd);
+    --bc-orange: var(--bastide-orange, #ef6c00);
+    --bc-tint: 14%;
+    --bc-surface: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
+  }
+  ha-card.dark {
+    --bc-blue: var(--bastide-blue, #3aa8f0);
+    --bc-orange: var(--bastide-orange, #ffb74d);
+    --bc-tint: 20%;
+  }
+  .content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: var(--primary-text-color);
+  }
+  .accent-blue { --accent: var(--bc-blue); }
+  .accent-orange { --accent: var(--bc-orange); }
+  .accent-neutral { --accent: var(--secondary-text-color); }
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    text-align: inherit;
+    cursor: pointer;
+  }
+  button:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+  .icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) var(--bc-tint), transparent);
+    --mdc-icon-size: 20px;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .title {
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    background: var(--bc-surface);
+  }
+  .status {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .headline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .reason, .setup {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--secondary-text-color);
+  }
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 12px;
+    border-top: 1px solid var(--divider-color);
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    margin: 0 -6px;
+    padding: 0 6px;
+    border-radius: 8px;
+  }
+  .row:hover {
+    background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
+  }
+  .row:not(.active) .icon {
+    color: var(--secondary-text-color);
+    background: var(--bc-surface);
+  }
+  .text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .name {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .state {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--secondary-text-color);
+  }
+  .value {
+    font-size: 16px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .footer {
+    padding-top: 12px;
+    border-top: 1px solid var(--divider-color);
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--secondary-text-color);
+  }
+`;
+
+// HTML building blocks. Cards assemble these instead of writing their own
+// markup, which keeps every card of the pack looking the same. Every text is
+// escaped here; icons are `mdi:` names chosen by the cards.
+const ui = {
+  header({ icon, title, accent = 'neutral', chip }) {
+    const chipHtml = chip
+      ? `<button type="button" class="chip" data-entity="${escapeHtml(chip.entityId)}">${escapeHtml(chip.text)}</button>`
+      : '';
+    return `
+      <div class="header accent-${accent}">
+        <span class="icon"><ha-icon icon="${icon}"></ha-icon></span>
+        <span class="title">${escapeHtml(title)}</span>
+        ${chipHtml}
+      </div>`;
+  },
+
+  status({ headline, reason, accent = 'neutral' }) {
+    return `
+      <div class="status accent-${accent}">
+        <div class="headline"><span class="dot"></span><span>${escapeHtml(headline)}</span></div>
+        ${reason ? `<p class="reason">${escapeHtml(reason)}</p>` : ''}
+      </div>`;
+  },
+
+  row({ entityId, icon, name, state, value, accent = 'neutral', active = false }) {
+    return `
+      <button type="button" class="row accent-${accent}${active ? ' active' : ''}" data-entity="${escapeHtml(entityId)}">
+        <span class="icon"><ha-icon icon="${icon}"></ha-icon></span>
+        <span class="text">
+          <span class="name">${escapeHtml(name)}</span>
+          <span class="state">${escapeHtml(state)}</span>
+        </span>
+        ${value ? `<span class="value">${escapeHtml(value)}</span>` : ''}
+      </button>`;
+  },
+
+  list(rows) {
+    return `<div class="list">${rows.join('')}</div>`;
+  },
+
+  footer({ entityId, text }) {
+    return `<button type="button" class="footer" data-entity="${escapeHtml(entityId)}">${escapeHtml(text)}</button>`;
+  },
+
+  setup(text) {
+    return `<p class="setup">${escapeHtml(text)}</p>`;
+  },
+};
+
+/* ------------------------------------------------------------------------ */
+/* 3. BastideCard, the base class                                           */
+/* ------------------------------------------------------------------------ */
+
+// Handles what every card needs: configuration, redrawing only when one of
+// its entities changes, light and dark themes, and opening an entity's
+// details when a row is tapped. A card only says which entities it watches
+// (watchedEntities) and what it shows (renderContent).
+class BastideCard extends HTMLElement {
+  static get styles() {
+    return '';
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this._config = null;
+    this._hass = null;
+    this._seen = new Map();
+    this._renderKey = '';
+    this.shadowRoot.addEventListener('click', (ev) => {
+      const target = ev.target.closest('[data-entity]');
+      if (target && target.dataset.entity) fireMoreInfo(this, target.dataset.entity);
+    });
+  }
+
+  setConfig(config) {
+    if (!config || typeof config !== 'object') {
+      throw new Error('Invalid configuration');
+    }
+    this._config = { ...config };
+    this._renderKey = '';
+    this._render();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    lastHass = hass;
+    if (this._hasChanged()) this._render();
+  }
+
+  getCardSize() {
+    return 6;
+  }
+
+  getGridOptions() {
+    return { columns: 12, min_columns: 6 };
+  }
+
+  watchedEntities() {
+    return [];
+  }
+
+  renderContent() {
+    return '';
+  }
+
+  t(key, vars) {
+    return translate(this._hass, key, vars);
+  }
+
+  _currentKey() {
+    const hass = this._hass;
+    return [languageOf(hass), hass.themes?.darkMode ? 'dark' : 'light', hass.locale?.number_format || ''].join('|');
+  }
+
+  // Home Assistant sends a new `hass` on every state change in the house:
+  // only redraw when something this card shows has changed.
+  _hasChanged() {
+    if (!this._config || !this._hass) return false;
+    if (this._currentKey() !== this._renderKey) return true;
+    return this.watchedEntities().some((id) => this._seen.get(id) !== this._hass.states[id]);
+  }
+
+  _render() {
+    if (!this._config || !this._hass) return;
+    const hass = this._hass;
+    this._renderKey = this._currentKey();
+    this._seen = new Map(this.watchedEntities().map((id) => [id, hass.states[id]]));
+    const dark = Boolean(hass.themes?.darkMode);
+    this.shadowRoot.innerHTML = `
+      <style>${BASE_STYLES}${this.constructor.styles}</style>
+      <ha-card class="${dark ? 'dark' : ''}">
+        <div class="content">${this.renderContent()}</div>
+      </ha-card>`;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* 4a. Climate card                                                         */
 /* ------------------------------------------------------------------------ */
 
 const CLIMATE_DEFAULTS = { switch_over: 5, gauge_min: -10, gauge_max: 25 };
@@ -272,103 +585,19 @@ function sourceStatus(hass, source, unit) {
   });
 }
 
+// The heat pumps take the blue accent and the boilers the orange one, unless
+// a theme sets its own colours for them.
 const CLIMATE_STYLES = `
-  :host {
-    --bc-hp: var(--bastide-heat-pump-color, #0277bd);
-    --bc-boiler: var(--bastide-boiler-color, #ef6c00);
-    --bc-zone: 35%;
-    --bc-tint: 14%;
-  }
-  ha-card.dark {
-    --bc-hp: var(--bastide-heat-pump-color, #3aa8f0);
-    --bc-boiler: var(--bastide-boiler-color, #ffb74d);
-    --bc-zone: 50%;
-    --bc-tint: 20%;
-  }
   .content {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    color: var(--primary-text-color);
+    --bc-hp: var(--bastide-heat-pump-color, var(--bc-blue));
+    --bc-boiler: var(--bastide-boiler-color, var(--bc-orange));
+    --bc-zone: 35%;
+  }
+  ha-card.dark .content {
+    --bc-zone: 50%;
   }
   .accent-hp { --accent: var(--bc-hp); }
   .accent-boiler { --accent: var(--bc-boiler); }
-  .accent-neutral { --accent: var(--secondary-text-color); }
-  button {
-    font: inherit;
-    color: inherit;
-    background: none;
-    border: 0;
-    margin: 0;
-    padding: 0;
-    text-align: inherit;
-    cursor: pointer;
-  }
-  button:focus-visible {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-  }
-  .icon {
-    width: 36px;
-    height: 36px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) var(--bc-tint), transparent);
-    --mdc-icon-size: 20px;
-  }
-  .header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .title {
-    flex: 1;
-    min-width: 0;
-    font-size: 16px;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .chip {
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-    background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
-  }
-  .status {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .headline {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 20px;
-    line-height: 28px;
-    font-weight: 500;
-  }
-  .dot {
-    width: 10px;
-    height: 10px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: var(--accent);
-  }
-  .reason, .setup {
-    margin: 0;
-    font-size: 14px;
-    line-height: 20px;
-    color: var(--secondary-text-color);
-  }
   .gauge {
     display: flex;
     flex-direction: column;
@@ -399,6 +628,13 @@ const CLIMATE_STYLES = `
   .zone-boiler {
     border-radius: 5px 0 0 5px;
     background: color-mix(in srgb, var(--bc-boiler) var(--bc-zone), transparent);
+  }
+  .zone-band {
+    background: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--bc-boiler) var(--bc-zone), transparent),
+      color-mix(in srgb, var(--bc-hp) var(--bc-zone), transparent)
+    );
   }
   .zone-hp {
     flex: 1;
@@ -433,68 +669,16 @@ const CLIMATE_STYLES = `
   .gauge-labels .start { left: 0; }
   .gauge-labels .end { right: 0; }
   .gauge-labels .mid { transform: translateX(-50%); }
-  .sources {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding-top: 12px;
-    border-top: 1px solid var(--divider-color);
-  }
-  .source {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: 48px;
-    margin: 0 -6px;
-    padding: 0 6px;
-    border-radius: 8px;
-  }
-  .source:hover {
-    background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
-  }
-  .source.hp { --accent: var(--bc-hp); }
-  .source.boiler { --accent: var(--bc-boiler); }
-  .source:not(.active) .icon {
-    color: var(--secondary-text-color);
-    background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
-  }
-  .text {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .name {
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .state {
-    font-size: 12px;
-    line-height: 16px;
-    color: var(--secondary-text-color);
-  }
-  .value {
-    font-size: 16px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .footer {
-    padding-top: 12px;
-    border-top: 1px solid var(--divider-color);
-    font-size: 12px;
-    line-height: 16px;
-    color: var(--secondary-text-color);
-  }
 `;
 
-class BastideClimateCard extends HTMLElement {
+class BastideClimateCard extends BastideCard {
+  static get styles() {
+    return CLIMATE_STYLES;
+  }
+
   static getConfigForm() {
     const sourceFilter = [{ domain: 'climate' }, { domain: 'switch' }, { domain: 'input_boolean' }];
+    const thresholdFilter = [{ domain: 'input_number' }, { domain: 'number' }, { domain: 'sensor' }];
     const unit = lastHass?.config?.unit_system?.temperature || '°C';
     return {
       schema: [
@@ -502,6 +686,8 @@ class BastideClimateCard extends HTMLElement {
         { name: 'heat_pumps', selector: { entity: { multiple: true, filter: sourceFilter } } },
         { name: 'boilers', selector: { entity: { multiple: true, filter: sourceFilter } } },
         { name: 'outdoor_entity', selector: { entity: { filter: { domain: 'sensor', device_class: 'temperature' } } } },
+        { name: 'boiler_threshold_entity', selector: { entity: { filter: thresholdFilter } } },
+        { name: 'heat_pump_threshold_entity', selector: { entity: { filter: thresholdFilter } } },
         {
           name: 'switch_over',
           selector: { number: { min: -30, max: 30, step: 0.5, mode: 'box', unit_of_measurement: unit } },
@@ -518,7 +704,7 @@ class BastideClimateCard extends HTMLElement {
         },
       ],
       computeLabel: (schema) => (schema.name ? lookup(null, `editor.climate.${schema.name}`) : undefined),
-      computeHelper: (schema) => (schema.name === 'switch_over' ? lookup(null, 'editor.climate.switch_over_help') : undefined),
+      computeHelper: (schema) => (schema.name ? lookup(null, `editor.climate.${schema.name}_help`) : undefined),
     };
   }
 
@@ -536,80 +722,35 @@ class BastideClimateCard extends HTMLElement {
     return stub;
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this._config = null;
-    this._hass = null;
-    this._seen = new Map();
-    this._renderKey = '';
-    this.shadowRoot.addEventListener('click', (ev) => {
-      const target = ev.target.closest('[data-entity]');
-      if (target) fireMoreInfo(this, target.dataset.entity);
-    });
-  }
-
-  setConfig(config) {
-    if (!config || typeof config !== 'object') {
-      throw new Error('Invalid configuration');
-    }
-    this._config = { ...config };
-    this._renderKey = '';
-    this._render();
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-    lastHass = hass;
-    if (this._hasChanged()) this._render();
-  }
-
-  getCardSize() {
-    return 6;
-  }
-
-  getGridOptions() {
-    return { columns: 12, min_columns: 6 };
-  }
-
-  _watchedEntities() {
+  watchedEntities() {
     const config = this._config;
     return [
       ...entityList(config.heat_pumps),
       ...entityList(config.boilers),
       config.outdoor_entity,
+      config.boiler_threshold_entity,
+      config.heat_pump_threshold_entity,
       config.season_entity,
       config.presence_entity,
     ].filter(Boolean);
   }
 
-  _currentKey() {
-    const hass = this._hass;
-    return [languageOf(hass), hass.themes?.darkMode ? 'dark' : 'light', hass.locale?.number_format || ''].join('|');
+  // The switch-over band: the boiler takes over below `low`, the heat pumps
+  // above `high`. With a single threshold, low and high are equal.
+  _thresholds() {
+    const config = this._config;
+    const fixed = toNumber(config.switch_over) ?? CLIMATE_DEFAULTS.switch_over;
+    let low = entityNumber(this._hass, config.boiler_threshold_entity) ?? fixed;
+    let high = entityNumber(this._hass, config.heat_pump_threshold_entity) ?? low;
+    if (high < low) [low, high] = [high, low];
+    return { low, high };
   }
 
-  // Home Assistant sends a new `hass` on every state change in the house:
-  // only redraw when something this card shows has changed.
-  _hasChanged() {
-    if (!this._config || !this._hass) return false;
-    if (this._currentKey() !== this._renderKey) return true;
-    return this._watchedEntities().some((id) => this._seen.get(id) !== this._hass.states[id]);
-  }
-
-  _render() {
-    if (!this._config || !this._hass) return;
-    const hass = this._hass;
-    this._renderKey = this._currentKey();
-    this._seen = new Map(this._watchedEntities().map((id) => [id, hass.states[id]]));
-    this.shadowRoot.innerHTML = `<style>${CLIMATE_STYLES}</style>${this._cardHtml()}`;
-  }
-
-  _cardHtml() {
+  renderContent() {
     const hass = this._hass;
     const config = this._config;
-    const t = (key, vars) => translate(hass, `climate.${key}`, vars);
+    const t = (key, vars) => this.t(`climate.${key}`, vars);
     const unit = hass.config?.unit_system?.temperature || '°C';
-    const dark = Boolean(hass.themes?.darkMode);
     const title = config.title || t('title');
 
     const heatPumps = entityList(config.heat_pumps).map((id) => readSource(hass, id, 'hp'));
@@ -617,16 +758,7 @@ class BastideClimateCard extends HTMLElement {
     const sources = [...heatPumps, ...boilers];
 
     if (!sources.length) {
-      return `
-        <ha-card class="${dark ? 'dark' : ''}">
-          <div class="content accent-neutral">
-            <div class="header">
-              <span class="icon"><ha-icon icon="mdi:thermometer"></ha-icon></span>
-              <span class="title">${escapeHtml(title)}</span>
-            </div>
-            <p class="setup">${escapeHtml(t('setup'))}</p>
-          </div>
-        </ha-card>`;
+      return ui.header({ icon: 'mdi:thermometer', title }) + ui.setup(t('setup'));
     }
 
     // What is running: heating wins over cooling, and the boiler is named
@@ -641,103 +773,89 @@ class BastideClimateCard extends HTMLElement {
     else if (sources.some((s) => s.cools)) [status, accent] = ['cool_on', 'hp'];
     const cooling = status === 'cool_on';
 
-    // Outdoor temperature against the switch-over point.
+    // Outdoor temperature against the switch-over band.
     const outdoorState = config.outdoor_entity ? hass.states[config.outdoor_entity] : undefined;
-    const outdoor = isUsable(outdoorState) ? toNumber(outdoorState.state) : null;
+    const outdoor = entityNumber(hass, config.outdoor_entity);
     const outdoorUnit = outdoorState?.attributes?.unit_of_measurement || unit;
-    const threshold = toNumber(config.switch_over) ?? CLIMATE_DEFAULTS.switch_over;
+    const { low, high } = this._thresholds();
     const outdoorText = outdoor === null ? '' : formatTemperature(hass, outdoor, outdoorUnit, 1);
-    const thresholdText = formatTemperature(hass, threshold, outdoorUnit);
+    const lowText = formatTemperature(hass, low, outdoorUnit);
+    const highText = formatTemperature(hass, high, outdoorUnit);
+    const bandText = low === high ? lowText : `${formatNumber(hass, low)}–${highText}`;
 
     let reason = '';
     if (status === 'all_off') reason = t('off_reason');
     else if (outdoor !== null && cooling) reason = t('cool_reason', { outdoor: outdoorText });
+    else if (outdoor !== null && outdoor < low) reason = t('below', { outdoor: outdoorText, threshold: lowText });
+    else if (outdoor !== null && outdoor > high) reason = t('above', { outdoor: outdoorText, threshold: highText });
+    else if (outdoor !== null && low === high) reason = t('above', { outdoor: outdoorText, threshold: highText });
     else if (outdoor !== null) {
-      reason = t(outdoor >= threshold ? 'above' : 'below', { outdoor: outdoorText, threshold: thresholdText });
+      reason = t('between', { outdoor: outdoorText, low: formatNumber(hass, low), high: highText });
     }
 
     const seasonState = config.season_entity ? hass.states[config.season_entity] : undefined;
     const presenceState = config.presence_entity ? hass.states[config.presence_entity] : undefined;
 
-    const header = `
-      <div class="header accent-${accent}">
-        <span class="icon"><ha-icon icon="${cooling ? 'mdi:snowflake' : 'mdi:thermometer'}"></ha-icon></span>
-        <span class="title">${escapeHtml(title)}</span>
-        ${isUsable(seasonState)
-          ? `<button type="button" class="chip" data-entity="${escapeHtml(config.season_entity)}">${escapeHtml(formatState(hass, seasonState))}</button>`
-          : ''}
-      </div>`;
+    const rows = sources.map((s) => ui.row({
+      entityId: s.entityId,
+      icon: s.kind === 'boiler' ? 'mdi:fire' : 'mdi:fan',
+      name: s.name,
+      state: sourceStatus(hass, s, unit),
+      value: s.current === null ? '' : formatTemperature(hass, s.current, unit, 1),
+      accent: s.kind,
+      active: !['off', 'unavailable', 'missing'].includes(s.mode),
+    }));
 
-    const statusBlock = `
-      <div class="status accent-${accent}">
-        <div class="headline"><span class="dot"></span><span>${escapeHtml(t(status))}</span></div>
-        ${reason ? `<p class="reason">${escapeHtml(reason)}</p>` : ''}
-      </div>`;
-
-    const gauge = outdoor !== null && !cooling
-      ? this._gaugeHtml(outdoor, threshold, outdoorText, thresholdText)
-      : '';
-
-    const rows = sources.map((s) => {
-      const active = !['off', 'unavailable', 'missing'].includes(s.mode);
-      const value = s.current === null
-        ? ''
-        : `<span class="value">${escapeHtml(formatTemperature(hass, s.current, unit, 1))}</span>`;
-      return `
-        <button type="button" class="source ${s.kind}${active ? ' active' : ''}" data-entity="${escapeHtml(s.entityId)}">
-          <span class="icon"><ha-icon icon="${s.kind === 'boiler' ? 'mdi:fire' : 'mdi:fan'}"></ha-icon></span>
-          <span class="text">
-            <span class="name">${escapeHtml(s.name)}</span>
-            <span class="state">${escapeHtml(sourceStatus(hass, s, unit))}</span>
-          </span>
-          ${value}
-        </button>`;
-    }).join('');
-
-    const footer = isUsable(presenceState)
-      ? `<button type="button" class="footer" data-entity="${escapeHtml(config.presence_entity)}">${escapeHtml(
-        `${presenceState.attributes?.friendly_name || config.presence_entity} · ${formatState(hass, presenceState)}`,
-      )}</button>`
-      : '';
-
-    return `
-      <ha-card class="${dark ? 'dark' : ''}">
-        <div class="content">
-          ${header}
-          ${statusBlock}
-          ${gauge}
-          <div class="sources">${rows}</div>
-          ${footer}
-        </div>
-      </ha-card>`;
+    return [
+      ui.header({
+        icon: cooling ? 'mdi:snowflake' : 'mdi:thermometer',
+        title,
+        accent,
+        chip: isUsable(seasonState) ? { entityId: config.season_entity, text: formatState(hass, seasonState) } : null,
+      }),
+      ui.status({ headline: t(status), reason, accent }),
+      outdoor !== null && !cooling ? this._gaugeHtml({ outdoor, low, high, outdoorText, bandText }) : '',
+      ui.list(rows),
+      isUsable(presenceState)
+        ? ui.footer({
+          entityId: config.presence_entity,
+          text: `${presenceState.attributes?.friendly_name || config.presence_entity} · ${formatState(hass, presenceState)}`,
+        })
+        : '',
+    ].join('');
   }
 
-  _gaugeHtml(outdoor, threshold, outdoorText, thresholdText) {
-    const hass = this._hass;
-    const t = (key, vars) => translate(hass, `climate.${key}`, vars);
+  _gaugeHtml({ outdoor, low, high, outdoorText, bandText }) {
+    const t = (key, vars) => this.t(`climate.${key}`, vars);
     let min = toNumber(this._config.gauge_min) ?? CLIMATE_DEFAULTS.gauge_min;
     let max = toNumber(this._config.gauge_max) ?? CLIMATE_DEFAULTS.gauge_max;
     if (max <= min) [min, max] = [CLIMATE_DEFAULTS.gauge_min, CLIMATE_DEFAULTS.gauge_max];
 
     const percent = (value) => ((Math.min(max, Math.max(min, value)) - min) / (max - min)) * 100;
     const marker = percent(outdoor);
-    const split = percent(threshold);
+    const lowPct = percent(low);
+    const highPct = percent(high);
     // Keep the floating labels inside the card.
     const valueLeft = Math.min(88, Math.max(12, marker));
-    const splitLabelLeft = Math.min(80, Math.max(20, split));
+    const bandLabelLeft = Math.min(80, Math.max(20, (lowPct + highPct) / 2));
+    const ticks = low === high
+      ? `<span class="threshold" style="left: ${lowPct.toFixed(2)}%"></span>`
+      : `<span class="threshold" style="left: ${lowPct.toFixed(2)}%"></span>
+         <span class="threshold" style="left: ${highPct.toFixed(2)}%"></span>`;
 
     return `
-      <div class="gauge" role="img" aria-label="${escapeHtml(t('gauge_label', { outdoor: outdoorText, threshold: thresholdText }))}">
+      <div class="gauge" role="img" aria-label="${escapeHtml(t('gauge_label', { outdoor: outdoorText, threshold: bandText }))}">
         <div class="gauge-value" aria-hidden="true"><span style="left: ${valueLeft.toFixed(2)}%">${escapeHtml(outdoorText)}</span></div>
         <div class="gauge-bar" aria-hidden="true">
-          <span class="zone-boiler" style="width: ${split.toFixed(2)}%"></span>
+          <span class="zone-boiler" style="width: ${lowPct.toFixed(2)}%"></span>
+          <span class="zone-band" style="width: ${(highPct - lowPct).toFixed(2)}%"></span>
           <span class="zone-hp"></span>
-          <span class="threshold" style="left: ${split.toFixed(2)}%"></span>
+          ${ticks}
           <span class="marker" style="left: ${marker.toFixed(2)}%"></span>
         </div>
         <div class="gauge-labels" aria-hidden="true">
           <span class="start">${escapeHtml(t('zone_boiler'))}</span>
-          <span class="mid" style="left: ${splitLabelLeft.toFixed(2)}%">${escapeHtml(thresholdText)}</span>
+          <span class="mid" style="left: ${bandLabelLeft.toFixed(2)}%">${escapeHtml(bandText)}</span>
           <span class="end">${escapeHtml(t('zone_hp'))}</span>
         </div>
       </div>`;
@@ -748,13 +866,23 @@ class BastideClimateCard extends HTMLElement {
 /* Registration                                                             */
 /* ------------------------------------------------------------------------ */
 
-if (!customElements.get('bastide-climate-card')) {
-  customElements.define('bastide-climate-card', BastideClimateCard);
-  window.customCards = window.customCards || [];
-  window.customCards.push({
+const BASTIDE_CARDS = [
+  {
     type: 'bastide-climate-card',
+    element: BastideClimateCard,
     name: 'Bastide Climate',
     description: 'Which heat source is running and why in winter, the air conditioning in summer.',
+  },
+];
+
+window.customCards = window.customCards || [];
+for (const card of BASTIDE_CARDS) {
+  if (customElements.get(card.type)) continue;
+  customElements.define(card.type, card.element);
+  window.customCards.push({
+    type: card.type,
+    name: card.name,
+    description: card.description,
     preview: true,
     documentationURL: BASTIDE_REPO,
   });

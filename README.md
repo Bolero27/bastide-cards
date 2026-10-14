@@ -2,7 +2,7 @@
 
 A collection of custom dashboard cards for [Home Assistant](https://www.home-assistant.io/), installable through [HACS](https://hacs.xyz/).
 
-Every card follows your dashboard theme (light or dark) and the language of your Home Assistant profile.
+All cards share one look, so they sit together naturally on a dashboard. Every card follows your dashboard theme (light or dark) and the language of your Home Assistant profile.
 
 | Card | Type | What it shows |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ Every card follows your dashboard theme (light or dark) and the language of your
 For homes with heat pumps, a boiler, or both. The card answers three questions at a glance:
 
 - **What is running?** Heat pump, boiler, both, air conditioning, or nothing.
-- **Why?** The outdoor temperature compared with your switch-over point: below it, the boiler takes over from the heat pumps.
+- **Why?** The outdoor temperature compared with your switch-over point: below it, the boiler takes over from the heat pumps. With two thresholds (for example boiler below 4 °C, heat pumps above 6 °C), the gauge shows the band in between, where the current source stays on.
 - **How is each device doing?** Its mode, its target and the room temperature.
 
 In summer, when the heat pumps are cooling, the switch-over gauge is hidden and the card shows the air conditioning instead.
@@ -48,7 +48,8 @@ heat_pumps:
 boilers:
   - climate.boiler
 outdoor_entity: sensor.outdoor_temperature
-switch_over: 5
+boiler_threshold_entity: input_number.boiler_threshold
+heat_pump_threshold_entity: input_number.heat_pump_threshold
 season_entity: input_select.season
 presence_entity: input_select.presence
 ```
@@ -58,7 +59,9 @@ presence_entity: input_select.presence
 | `heat_pumps` | | Heat pumps: `climate`, `switch` or `input_boolean` entities. |
 | `boilers` | | Boilers: same entity types. At least one heat pump or boiler is needed. |
 | `outdoor_entity` | | Outdoor temperature sensor. Shows the gauge and the reason line. |
-| `switch_over` | `5` | Outdoor temperature below which the boiler takes over. |
+| `boiler_threshold_entity` | | Helper (`input_number`, `number` or `sensor`) holding the outdoor temperature below which the boiler takes over. |
+| `heat_pump_threshold_entity` | | Helper holding the outdoor temperature above which the heat pumps take over again. Leave it out for a single threshold. |
+| `switch_over` | `5` | Fixed switch-over temperature, used when no helper is set. |
 | `season_entity` | | Shown as a chip next to the title (`input_select`, `select` or `sensor`). |
 | `presence_entity` | | Shown at the bottom of the card. |
 | `title` | `Heating & cooling` | Card title. The default title is translated. |
@@ -73,11 +76,22 @@ presence_entity: input_select.presence
 
 ### Colours
 
-The heat pump is blue and the boiler is orange, in light and dark themes. To change them, set these variables in your theme:
+The heat pumps take the blue accent and the boilers the orange one. To change only this card, set these variables in your theme:
 
 ```yaml
 bastide-heat-pump-color: "#0277bd"
 bastide-boiler-color: "#ef6c00"
+```
+
+## Style
+
+Every card is built from the same pieces: a header with a round icon and an optional chip, a headline with a coloured dot, a list of tappable rows, and a footer line. Text colours, dividers, the card background and the font come from your Home Assistant theme.
+
+Two accent colours are shared by the whole pack. A theme can override them for all cards at once:
+
+```yaml
+bastide-blue: "#0277bd"
+bastide-orange: "#ef6c00"
 ```
 
 ## Languages
