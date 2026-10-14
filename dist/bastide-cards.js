@@ -10,7 +10,7 @@
  *   4. The cards themselves.
  */
 
-const BASTIDE_VERSION = '0.5.0';
+const BASTIDE_VERSION = '0.6.0';
 const BASTIDE_REPO = 'https://github.com/Bolero27/bastide-cards';
 
 /* ------------------------------------------------------------------------ */
@@ -63,6 +63,144 @@ const STRINGS = {
       setup: 'Choose one or more calendars in the card editor.',
       error: 'The calendar could not be read.',
     },
+    heating: {
+      title: 'Heating check',
+      period: 'Period',
+      period_24: '24 h',
+      period_48: '48 h',
+      period_168: '7 d',
+      period_note_24: 'Over the last 24 hours',
+      period_note_48: 'Over the last 48 hours',
+      period_note_168: 'Over the last 7 days',
+      kpi_outdoor: 'Mean outdoor',
+      kpi_hp: 'Heat pump',
+      kpi_boiler: 'Boiler',
+      kpi_running: 'Running',
+      kpi_switches: 'Switch-overs',
+      kpi_all_ok: 'All at the right thresholds',
+      kpi_some: '{n} to check',
+      kpi_check: 'To check',
+      kpi_check_note: 'See the log below',
+      kpi_nothing: 'Nothing to report',
+      outdoor_title: 'Outdoor temperature and switch-over points',
+      outdoor: 'Outdoor',
+      threshold_hp: 'Heat pump threshold {value}',
+      threshold_boiler: 'Boiler threshold {value}',
+      min: 'min {value}',
+      max: 'max {value}',
+      source: 'Source',
+      mode: 'Mode',
+      src_pac: 'Heat pump',
+      src_boiler: 'Boiler',
+      src_cool: 'Cooling',
+      src_off: 'Off',
+      rooms_title: 'Does each room follow its target?',
+      legend_room: 'Room temperature',
+      legend_target: 'Target',
+      legend_hp: 'Heating',
+      verdict_ok: 'Follows its target',
+      verdict_off: 'Off over the period',
+      verdict_gap: '{value} below target on average',
+      no_data: 'No history yet.',
+      log_title: 'What the automation did',
+      col_when: 'When',
+      col_what: 'What happened',
+      col_why: 'Why',
+      col_check: 'Check',
+      to_boiler: 'Switch to the boiler',
+      back_pac: 'Back to the heat pump',
+      start_pac: 'Heat pump on',
+      start_boiler: 'Boiler on',
+      start_cool: 'Air conditioning on',
+      start_off: 'Heating off',
+      why_outdoor: 'Outdoor {value}',
+      why_check_boiler: 'Outdoor {value}, above the heat pump threshold',
+      why_check_pac: 'Outdoor {value}, below the boiler threshold',
+      mode_change: 'Mode {mode}',
+      ok: 'As expected',
+      check: 'To check',
+      info: 'Info',
+      loading: 'Reading the history…',
+      error: 'The history could not be read.',
+      empty: 'Nothing happened over this period.',
+    },
+    insulation: {
+      title: 'How the home reacts',
+      setup: 'Choose the outdoor sensor and the rooms in the card configuration.',
+      loading: 'Reading the statistics…',
+      error: 'The statistics could not be read.',
+      intro: 'These indicators compare the rooms with each other and one year with the next, and show where to look first. They are not a diagnosis: to find a defect, use a thermal camera or an air-tightness test.',
+      winter: 'Winter · keeping the heat in',
+      summer: 'Summer · keeping the heat out',
+      signature: 'Energy signature',
+      signature_sub: 'Heat delivered per day against the mean outdoor temperature · heat pumps: electricity × {scop}',
+      signature_boiler: ' · boiler: hours × {kw} kW',
+      signature_noboiler: ' · {n} boiler days left out (no gas data)',
+      legend_hp_day: 'Heat pump day',
+      legend_boiler_day: 'Boiler day',
+      slope: 'Slope ≈ {kwh} kWh per day and per degree, i.e. losses of about {wk} W/K (±15–30 %)',
+      balance: 'Balance ≈ {value}: above it, no heating needed',
+      need_days: 'Not enough heating days yet: {n} of the 10 needed.',
+      tau: 'Time constant of each room',
+      tau_sub: 'Hours to lose 63 % of the gap with outdoors, heating off at night · longer is better',
+      tau_none: 'No night without heating in the last 30 days yet.',
+      tau_missing: 'No usable night yet',
+      tau_nights: '{n} nights',
+      tau_few: '{n} night(s) · to be confirmed',
+      tau_insight: '{room} loses its heat {ratio} times faster than {best}. Look at its window, shutter box and outside wall first, ideally with a thermal camera.',
+      hot_day: 'A hot day, air conditioning off',
+      hot_sub: '{room}, {date}',
+      outdoor: 'Outdoor',
+      damping: 'Damping',
+      damping_note: 'Indoors varies {n} times less than outdoors',
+      lag: 'Time lag',
+      lag_note: 'The heat peak arrives {n} h later indoors',
+      no_hot_day: 'No full summer day with the air conditioning off was found.',
+      overheating: 'Overheating last summer, air conditioning off',
+      since: 'since {date}',
+      overheating_sub: 'Hours counted only while the air conditioning is off · outdoor temperature from the weather service',
+      no_summer: 'No summer data yet.',
+      col_room: 'Room',
+      col_measure: 'Measure',
+      col_value: 'Value',
+      col_ref: 'Benchmark',
+      col_verdict: 'Verdict',
+      measure_living: 'Hours above adaptive comfort (EN 16798-1, cat. II)',
+      measure_bedroom: 'Night hours above 26 °C',
+      ref_living: '≤ 60 h · 3 % of 9 am–10 pm hours, May–Sept. (TM59)',
+      ref_bedroom: '≤ 32 h · 1 % of 10 pm–7 am hours (TM59)',
+      pass: 'As expected',
+      fail: 'Exceeded',
+      methods: 'Method and sources',
+      col_indicator: 'Indicator',
+      col_how: 'What is calculated',
+      col_source: 'Based on',
+      col_limits: 'Limits',
+      m_signature_name: 'Energy signature',
+      m_signature_what: 'Line of the heat delivered per day against the mean outdoor temperature. Its slope gives the home’s losses; where it reaches zero, the balance temperature.',
+      m_signature_source: 'PRISM method (Fels, 1986); critical review by Hammarsten (Applied Energy, 1987); in-situ methods compared with co-heating (Bauwens and Roels, Energy and Buildings, 2014)',
+      m_signature_limits: 'Sun and occupants also heat and skew the slope. Reliable to compare two winters; as an absolute value, allow ±15 to 30 %. The heat pump COP changes with the cold.',
+      m_tau_name: 'Time constant',
+      m_tau_what: 'How fast each room moves towards the outdoor temperature with the heating off (Newton’s law of cooling).',
+      m_tau_source: 'Simple resistance-capacitance model (Bacher and Madsen, Energy and Buildings, 2011); principle of the QUB method (Alzetto et al., Energy and Buildings, 2018)',
+      m_tau_limits: 'Mixes insulation and thermal mass; rooms exchange heat with each other. Measured at night, doors and windows shut.',
+      m_damping_name: 'Damping and time lag',
+      m_damping_what: 'Ratio between the indoor and outdoor temperature swing over a day, and the delay between both peaks.',
+      m_damping_source: 'Decrement factor and time lag of EN ISO 13786, measured here at room scale',
+      m_damping_limits: 'Valid with the air conditioning off and shutters and windows in the same position all day.',
+      m_overheating_name: 'Overheating',
+      m_overheating_what: 'Hours spent above a comfort limit.',
+      m_overheating_source: 'Adaptive comfort of EN 16798-1; CIBSE TM59 criteria for homes (2017)',
+      m_overheating_limits: 'Sensor out of direct sun. The 2026 edition of TM59 counts hot nights rather than hours.',
+      methods_note: 'For reliable figures: energy readings (gas meter, air conditioners’ electricity), at least a full season, nights without heating for the time constant, and windows shut during the measurements.',
+    },
+    camera: {
+      offline: 'Camera unavailable',
+      live: 'Live',
+    },
+    nav: {
+      aria: 'Dashboard views',
+    },
     presence: {
       title: 'Home',
       outdoor: 'Outdoor',
@@ -95,6 +233,12 @@ const STRINGS = {
         color: 'Colour',
         days: 'Days ahead',
         max_events: 'Events shown',
+      },
+      camera: {
+        entity: 'Camera',
+        title: 'Title',
+        name: 'Label on the image',
+        entities: 'Devices below the image',
       },
       colors: {
         orange: 'Orange', blue: 'Blue', pink: 'Pink', violet: 'Violet',
@@ -165,6 +309,144 @@ const STRINGS = {
       setup: 'Choisissez un ou plusieurs calendriers dans l’éditeur de la carte.',
       error: 'Impossible de lire le calendrier.',
     },
+    heating: {
+      title: 'Contrôle du chauffage',
+      period: 'Période',
+      period_24: '24 h',
+      period_48: '48 h',
+      period_168: '7 j',
+      period_note_24: 'Sur les dernières 24 h',
+      period_note_48: 'Sur les dernières 48 h',
+      period_note_168: 'Sur les 7 derniers jours',
+      kpi_outdoor: 'Extérieur moyen',
+      kpi_hp: 'Pompe à chaleur',
+      kpi_boiler: 'Chaudière',
+      kpi_running: 'En service',
+      kpi_switches: 'Bascules',
+      kpi_all_ok: 'Toutes aux bons seuils',
+      kpi_some: '{n} à vérifier',
+      kpi_check: 'À vérifier',
+      kpi_check_note: 'Voir le journal plus bas',
+      kpi_nothing: 'Rien à signaler',
+      outdoor_title: 'Température extérieure et seuils de bascule',
+      outdoor: 'Extérieur',
+      threshold_hp: 'Seuil PAC {value}',
+      threshold_boiler: 'Seuil chaudière {value}',
+      min: 'min {value}',
+      max: 'max {value}',
+      source: 'Source',
+      mode: 'Mode',
+      src_pac: 'PAC',
+      src_boiler: 'Chaudière',
+      src_cool: 'Clim',
+      src_off: 'Arrêt',
+      rooms_title: 'Chaque pièce suit-elle sa consigne ?',
+      legend_room: 'Température de la pièce',
+      legend_target: 'Consigne',
+      legend_hp: 'Chauffe',
+      verdict_ok: 'Suit sa consigne',
+      verdict_off: 'Arrêté sur la période',
+      verdict_gap: 'En moyenne {value} sous la consigne',
+      no_data: 'Pas encore d’historique.',
+      log_title: 'Ce que l’automatisation a fait',
+      col_when: 'Quand',
+      col_what: 'Ce qui s’est passé',
+      col_why: 'Pourquoi',
+      col_check: 'Vérification',
+      to_boiler: 'Bascule vers la chaudière',
+      back_pac: 'Retour à la pompe à chaleur',
+      start_pac: 'Pompe à chaleur en marche',
+      start_boiler: 'Chaudière en marche',
+      start_cool: 'Climatisation en marche',
+      start_off: 'Chauffage arrêté',
+      why_outdoor: 'Extérieur {value}',
+      why_check_boiler: 'Extérieur {value}, au-dessus du seuil PAC',
+      why_check_pac: 'Extérieur {value}, sous le seuil chaudière',
+      mode_change: 'Mode {mode}',
+      ok: 'Conforme',
+      check: 'À vérifier',
+      info: 'Info',
+      loading: 'Lecture de l’historique…',
+      error: 'Impossible de lire l’historique.',
+      empty: 'Rien ne s’est passé sur cette période.',
+    },
+    insulation: {
+      title: 'Comment le logement réagit',
+      setup: 'Choisissez le capteur extérieur et les pièces dans la configuration de la carte.',
+      loading: 'Lecture des statistiques…',
+      error: 'Impossible de lire les statistiques.',
+      intro: 'Ces indicateurs servent à comparer les pièces entre elles et une année à l’autre, et à savoir où chercher en premier. Ils ne remplacent pas un diagnostic : pour localiser un défaut, il faut une caméra thermique ou un test d’étanchéité à l’air.',
+      winter: 'Hiver · garder la chaleur',
+      summer: 'Été · se protéger de la chaleur',
+      signature: 'Signature énergétique',
+      signature_sub: 'Chaleur fournie par jour selon la température extérieure moyenne · PAC : électricité × {scop}',
+      signature_boiler: ' · chaudière : heures × {kw} kW',
+      signature_noboiler: ' · {n} jours de chaudière exclus (pas de données de gaz)',
+      legend_hp_day: 'Jour PAC',
+      legend_boiler_day: 'Jour chaudière',
+      slope: 'Pente ≈ {kwh} kWh par jour et par degré, soit des pertes d’environ {wk} W/K (à ±15–30 %)',
+      balance: 'Équilibre ≈ {value} : au-dessus, plus besoin de chauffer',
+      need_days: 'Pas encore assez de jours de chauffage : {n} sur les 10 nécessaires.',
+      tau: 'Constante de temps de chaque pièce',
+      tau_sub: 'Heures pour perdre 63 % de l’écart avec l’extérieur, chauffage coupé la nuit · plus c’est long, mieux la pièce garde la chaleur',
+      tau_none: 'Pas encore de nuit sans chauffage sur les 30 derniers jours.',
+      tau_missing: 'Pas encore de nuit exploitable',
+      tau_nights: '{n} nuits',
+      tau_few: '{n} nuit(s) · à confirmer',
+      tau_insight: '{room} perd sa chaleur {ratio} fois plus vite que {best}. Fenêtre, coffre de volet et mur extérieur sont à regarder en premier, idéalement avec une caméra thermique.',
+      hot_day: 'Une journée chaude, clim coupée',
+      hot_sub: '{room}, {date}',
+      outdoor: 'Extérieur',
+      damping: 'Amortissement',
+      damping_note: 'L’intérieur varie {n} fois moins que l’extérieur',
+      lag: 'Déphasage',
+      lag_note: 'Le pic de chaleur arrive {n} h plus tard à l’intérieur',
+      no_hot_day: 'Aucune journée d’été complète sans clim trouvée.',
+      overheating: 'Surchauffe l’été dernier, clim coupée',
+      since: 'depuis le {date}',
+      overheating_sub: 'Heures comptées seulement quand la clim est coupée · température extérieure du service météo',
+      no_summer: 'Pas encore de données d’été.',
+      col_room: 'Pièce',
+      col_measure: 'Mesure',
+      col_value: 'Valeur',
+      col_ref: 'Repère',
+      col_verdict: 'Verdict',
+      measure_living: 'Heures au-dessus du confort adaptatif (EN 16798-1, cat. II)',
+      measure_bedroom: 'Heures de nuit au-dessus de 26 °C',
+      ref_living: '≤ 60 h · 3 % des heures 9 h–22 h, mai à sept. (TM59)',
+      ref_bedroom: '≤ 32 h · 1 % des heures 22 h–7 h (TM59)',
+      pass: 'Conforme',
+      fail: 'Dépassé',
+      methods: 'Méthode et sources',
+      col_indicator: 'Indicateur',
+      col_how: 'Ce qu’on calcule',
+      col_source: 'S’appuie sur',
+      col_limits: 'Limites',
+      m_signature_name: 'Signature énergétique',
+      m_signature_what: 'Droite de la chaleur fournie par jour selon la température extérieure moyenne. La pente donne les pertes du logement, le point où elle s’annule la température d’équilibre.',
+      m_signature_source: 'Méthode PRISM (Fels, 1986) ; revue critique de Hammarsten (Applied Energy, 1987) ; méthodes sur données réelles comparées au co-heating (Bauwens et Roels, Energy and Buildings, 2014)',
+      m_signature_limits: 'Le soleil et les occupants chauffent aussi et faussent la pente. Fiable pour comparer deux hivers ; en valeur absolue, compter ±15 à 30 %. Le COP de la PAC varie avec le froid.',
+      m_tau_name: 'Constante de temps',
+      m_tau_what: 'Vitesse à laquelle chaque pièce se rapproche de la température extérieure quand le chauffage est coupé (loi de refroidissement de Newton).',
+      m_tau_source: 'Modèle « résistance-capacité » simple (Bacher et Madsen, Energy and Buildings, 2011) ; principe de la méthode QUB (Alzetto et al., Energy and Buildings, 2018)',
+      m_tau_limits: 'Mélange isolation et masse thermique ; les pièces échangent de la chaleur entre elles. Mesurée la nuit, portes et fenêtres fermées.',
+      m_damping_name: 'Amortissement et déphasage',
+      m_damping_what: 'Rapport entre la variation de température intérieure et extérieure sur une journée, et décalage entre les deux pics.',
+      m_damping_source: 'Facteur d’amortissement et déphasage de la norme EN ISO 13786, mesurés ici à l’échelle de la pièce',
+      m_damping_limits: 'Valable clim coupée, avec volets et fenêtres dans la même position toute la journée.',
+      m_overheating_name: 'Surchauffe',
+      m_overheating_what: 'Heures passées au-dessus d’une limite de confort.',
+      m_overheating_source: 'Confort adaptatif de la norme EN 16798-1 ; critères des logements CIBSE TM59 (2017)',
+      m_overheating_limits: 'Sonde à l’abri du soleil direct. La version 2026 de la TM59 compte des nuits chaudes plutôt que des heures.',
+      methods_note: 'Pour des chiffres fiables : les relevés d’énergie (compteur gaz, électricité des clims), au moins une saison complète, des nuits sans chauffage pour la constante de temps, et les fenêtres fermées pendant les mesures.',
+    },
+    camera: {
+      offline: 'Caméra indisponible',
+      live: 'Direct',
+    },
+    nav: {
+      aria: 'Vues du dashboard',
+    },
     presence: {
       title: 'Maison',
       outdoor: 'Extérieur',
@@ -197,6 +479,12 @@ const STRINGS = {
         color: 'Couleur',
         days: 'Jours à afficher',
         max_events: 'Événements affichés',
+      },
+      camera: {
+        entity: 'Caméra',
+        title: 'Titre',
+        name: 'Nom sur l’image',
+        entities: 'Appareils sous l’image',
       },
       colors: {
         orange: 'Orange', blue: 'Bleu', pink: 'Rose', violet: 'Violet',
@@ -931,8 +1219,13 @@ class BastideCard extends HTMLElement {
     this._seen = new Map();
     this._renderKey = '';
     this.shadowRoot.addEventListener('click', (ev) => {
-      const target = ev.target.closest('[data-service], [data-entity]');
+      const target = ev.target.closest('[data-local], [data-service], [data-entity]');
       if (!target) return;
+      // `data-local` actions stay inside the card (a period, a view to open).
+      if (target.dataset.local) {
+        this.onLocal(target.dataset.local, target);
+        return;
+      }
       if (target.dataset.service && this._hass) {
         const [domain, service] = target.dataset.service.split('.');
         let data = {};
@@ -1012,6 +1305,13 @@ class BastideCard extends HTMLElement {
     return 'orange';
   }
 
+  // Extra classes for ha-card; `plain` drops the card background and frame.
+  cardClasses() {
+    return [];
+  }
+
+  onLocal() {}
+
   _render() {
     if (!this._config || !this._hass) return;
     const hass = this._hass;
@@ -1024,15 +1324,17 @@ class BastideCard extends HTMLElement {
     // The entrance animation only plays the first time the card is drawn.
     const enter = this._fx && !this._entered;
     if (this.isConnected) this._entered = true;
+    const extra = this.cardClasses().filter(Boolean);
     const classes = [
       hass.themes?.darkMode ? 'dark' : '',
       this._hud ? 'hud' : '',
       this._fx ? 'fx' : '',
       enter ? 'enter' : '',
+      ...extra,
     ].filter(Boolean).join(' ');
     const content = this.renderContent();
     const edge = { hp: 'blue', boiler: 'orange', neutral: 'steel' }[this.edgeAccent()] || accentName(this.edgeAccent());
-    const chrome = this._hud ? '<span class="fx-edge"></span><span class="fx-sweep"></span>' : '';
+    const chrome = this._hud && !extra.includes('plain') ? '<span class="fx-edge"></span><span class="fx-sweep"></span>' : '';
     this.shadowRoot.innerHTML = `
       <style>${BASE_STYLES}${this.constructor.styles}</style>
       <ha-card class="${classes}" style="--card-edge: var(--bc-${edge})">
@@ -1981,37 +2283,13 @@ class BastideEntitiesCard extends BastideCard {
   }
 
   renderContent() {
-    const hass = this._hass;
     const config = this._config;
     const accent = accentName(config.color);
     const items = this._items();
     this._accent = accent;
     const header = ui.header({ icon: config.icon || 'mdi:view-list', title: config.title || '', accent });
     if (!items.length) return header + ui.setup(this.t('entities.setup'));
-
-    const rows = items.map((item) => {
-      const stateObj = hass.states[item.entity];
-      const domain = item.entity.split('.')[0];
-      const name = item.name || stateObj?.attributes?.friendly_name || item.entity;
-      const icon = item.icon || stateObj?.attributes?.icon || DOMAIN_ICONS[domain] || 'mdi:circle-outline';
-      if (!stateObj) {
-        return ui.toggleRow({ entityId: item.entity, icon, name, state: this.t('entities.missing'), accent });
-      }
-      const usable = isUsable(stateObj);
-      const canToggle = usable && TOGGLE_DOMAINS.includes(domain);
-      const on = stateObj.state === 'on';
-      return ui.toggleRow({
-        entityId: item.entity,
-        icon,
-        name,
-        state: item.secondary || (canToggle ? formatState(hass, stateObj) : ''),
-        value: canToggle ? '' : (usable ? formatState(hass, stateObj) : this.t('entities.unavailable')),
-        accent,
-        active: canToggle ? on : !IDLE_STATES.includes(stateObj.state),
-        toggle: canToggle ? { on, label: this.t('entities.toggle', { name }) } : null,
-      });
-    });
-    return header + ui.list(rows);
+    return header + ui.list(entityRowsHtml(this, items, accent));
   }
 }
 
@@ -2207,6 +2485,1581 @@ class BastideAgendaCard extends BastideCard {
 }
 
 /* ------------------------------------------------------------------------ */
+/* 4e. History and statistics helpers                                       */
+/* ------------------------------------------------------------------------ */
+
+// History points as { t (ms), s (state), a (attributes or null) }, oldest first.
+function historyPoints(list) {
+  return (list || []).map((item) => {
+    const seconds = item.lu ?? item.lc;
+    return {
+      t: seconds != null ? seconds * 1000 : Date.parse(item.last_updated || item.last_changed),
+      s: item.s ?? item.state,
+      a: item.a ?? item.attributes ?? null,
+    };
+  }).sort((x, y) => x.t - y.t);
+}
+
+async function fetchHistory(hass, entityIds, start, end, withAttributes) {
+  const ids = entityIds.filter(Boolean);
+  if (!ids.length) return {};
+  const result = await hass.callWS({
+    type: 'history/history_during_period',
+    start_time: start.toISOString(),
+    end_time: end.toISOString(),
+    entity_ids: ids,
+    minimal_response: !withAttributes,
+    no_attributes: !withAttributes,
+    significant_changes_only: false,
+  });
+  const out = {};
+  for (const id of ids) out[id] = historyPoints(result?.[id]);
+  return out;
+}
+
+// Long-term statistics as { start (ms), mean, change }, oldest first.
+async function fetchStatistics(hass, ids, start, end, period) {
+  const list = [...new Set(ids.filter(Boolean))];
+  if (!list.length) return {};
+  const result = await hass.callWS({
+    type: 'recorder/statistics_during_period',
+    start_time: start.toISOString(),
+    end_time: end.toISOString(),
+    statistic_ids: list,
+    period,
+    types: ['mean', 'change'],
+  });
+  const out = {};
+  for (const id of list) {
+    out[id] = (result?.[id] || []).map((row) => ({
+      start: typeof row.start === 'number' ? row.start : Date.parse(row.start),
+      mean: row.mean ?? null,
+      change: row.change ?? null,
+    }));
+  }
+  return out;
+}
+
+// The point in effect at time `t`: the last one at or before it.
+function pointAt(points, t) {
+  let found = null;
+  for (const point of points || []) {
+    if (point.t > t) break;
+    found = point;
+  }
+  return found;
+}
+
+// Spans of constant value between start and end, from one or more step series.
+function combinedSpans(start, end, seriesList, combine) {
+  const times = new Set([start]);
+  for (const series of seriesList) {
+    for (const point of series || []) if (point.t > start && point.t < end) times.add(point.t);
+  }
+  const spans = [];
+  for (const t of [...times].sort((a, b) => a - b)) {
+    const value = combine(seriesList.map((series) => pointAt(series, t)));
+    const last = spans[spans.length - 1];
+    if (last && last.value === value) continue;
+    if (last) last.to = t;
+    spans.push({ from: t, to: end, value });
+  }
+  return spans;
+}
+
+// Removes spans shorter than `minMs` (an automation passing through a state
+// for a few seconds), then joins neighbours that end up with the same value.
+function mergeShortSpans(spans, minMs) {
+  const out = [];
+  for (const span of spans) {
+    const last = out[out.length - 1];
+    if (last && (span.to - span.from < minMs || last.value === span.value)) {
+      last.to = span.to;
+      continue;
+    }
+    out.push({ ...span });
+  }
+  if (out.length > 1 && out[0].to - out[0].from < minMs) {
+    out[1].from = out[0].from;
+    out.shift();
+  }
+  return out;
+}
+
+// Time-weighted mean of a numeric step series.
+function timeMean(points, start, end) {
+  let total = 0;
+  let weight = 0;
+  const spans = combinedSpans(start, end, [points], ([p]) => (p ? toNumber(p.s) : null));
+  for (const span of spans) {
+    if (span.value === null) continue;
+    total += span.value * (span.to - span.from);
+    weight += span.to - span.from;
+  }
+  return weight ? total / weight : null;
+}
+
+function linearFit(xs, ys) {
+  const n = xs.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxy = 0;
+  let sxx = 0;
+  for (let i = 0; i < n; i += 1) {
+    sxy += (xs[i] - mx) * (ys[i] - my);
+    sxx += (xs[i] - mx) ** 2;
+  }
+  const slope = sxx ? sxy / sxx : 0;
+  return { slope, intercept: my - slope * mx };
+}
+
+function median(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+// Round tick values covering [min, max].
+function niceTicks(min, max, step) {
+  const ticks = [];
+  for (let v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step) ticks.push(Math.round(v * 100) / 100);
+  return ticks;
+}
+
+const pct = (value) => `${value.toFixed(2)}%`;
+
+const CHART_STYLES = `
+  .content {
+    --bc-hp: var(--bastide-heat-pump-color, var(--bc-blue));
+    --bc-boiler: var(--bastide-boiler-color, var(--bc-orange));
+  }
+  .intro, .panel-sub {
+    margin: 0;
+    font-size: 13px;
+    line-height: 19px;
+    color: var(--secondary-text-color);
+  }
+  .block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .block-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 16px;
+  }
+  .block-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  ha-card.hud .block-title {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 12px;
+    color: var(--secondary-text-color);
+  }
+  .legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .key-line { width: 18px; height: 3px; }
+  .key-dash { width: 18px; height: 0; border-top: 2px dashed; }
+  .key-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .key-box { width: 12px; height: 12px; }
+  .chart {
+    display: flex;
+    gap: 8px;
+  }
+  .axis-y {
+    position: relative;
+    width: 44px;
+    flex-shrink: 0;
+  }
+  .axis-y span, .axis-x span {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 11px;
+    color: var(--secondary-text-color);
+    font-variant-numeric: tabular-nums;
+  }
+  .axis-y span {
+    right: 0;
+    transform: translateY(-50%);
+  }
+  .plot {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+  .plot svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--divider-color);
+  }
+  .band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
+  }
+  .shade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+  .axis-x {
+    position: relative;
+    height: 16px;
+    margin-left: 52px;
+  }
+  .pt {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    margin: -5px 0 0 -5px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--ha-card-background, var(--card-background-color, #fff));
+  }
+  .pt-label {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .callout {
+    position: absolute;
+    max-width: 240px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 17px;
+    background: var(--primary-background-color);
+    border: 1px solid var(--divider-color);
+  }
+  .strip-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .strip-label {
+    width: 44px;
+    flex-shrink: 0;
+    text-align: right;
+    font-size: 11px;
+    color: var(--secondary-text-color);
+  }
+  .strip-bar {
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    position: relative;
+  }
+  .strip-seg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-right: 2px solid var(--ha-card-background, var(--card-background-color, #fff));
+  }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bc-surface);
+    border-top: 4px solid var(--kpi);
+  }
+  .kpi-label, .kpi-note {
+    font-size: 12px;
+    color: var(--secondary-text-color);
+  }
+  .kpi-value {
+    font-size: 28px;
+    line-height: 32px;
+    font-weight: 600;
+  }
+  .kpi-unit {
+    font-size: 14px;
+    color: var(--secondary-text-color);
+  }
+  ha-card.hud .kpi { border-radius: 0; }
+  ha-card.hud .kpi-value {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 34px;
+    font-style: italic;
+    font-weight: 800;
+  }
+  .multiples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .multiple {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bc-surface);
+    border-top: 4px solid var(--divider-color);
+  }
+  .multiple.flag { border-top-color: var(--bc-yellow); }
+  .multiple-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 8px;
+  }
+  ha-card.hud .multiple { border-radius: 0; }
+  .table-wrap { overflow-x: auto; }
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.data th {
+    text-align: left;
+    padding: 6px 10px 6px 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--secondary-text-color);
+    border-bottom: 2px solid var(--divider-color);
+  }
+  table.data td, table.data tbody th {
+    padding: 8px 10px 8px 0;
+    vertical-align: top;
+    border-bottom: 1px solid var(--divider-color);
+  }
+  table.data tbody th {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 13px;
+    color: var(--primary-text-color);
+  }
+  table.data td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    --mdc-icon-size: 16px;
+  }
+  .verdict.ok { color: var(--bc-green); }
+  .verdict.check { color: var(--bc-yellow); }
+  .verdict.fail { color: var(--bc-orange); }
+  .verdict.info { color: var(--secondary-text-color); }
+  table.data small {
+    font-size: 11px;
+    color: var(--secondary-text-color);
+  }
+  .kind {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin-right: 8px;
+    transform: rotate(45deg);
+  }
+  .note-box {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 19px;
+  }
+  ha-card.hud .note-box { border-radius: 0; }
+  .bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bar-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .bar {
+    height: 18px;
+    border-radius: 0 4px 4px 0;
+  }
+  .bar-value {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+  }
+  .season-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+    font-size: 16px;
+    font-weight: 700;
+    --mdc-icon-size: 20px;
+  }
+  .season-title ha-icon { color: var(--accent); }
+  ha-card.hud .season-title {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+  }
+`;
+
+// Draws a time chart: grid lines, optional shaded spans and band, SVG paths.
+function timeChart({ height, ticks, yOf, paths = '', shades = '', band = '', overlays = '', label }) {
+  const grid = ticks.map((tick) => `<span class="grid-line" style="top: ${pct(yOf(tick.value))}"></span>`).join('');
+  const axis = ticks.map((tick) => `<span style="top: ${pct(yOf(tick.value))}">${escapeHtml(tick.label)}</span>`).join('');
+  return `
+    <div class="chart">
+      <div class="axis-y" style="height: ${height}px" aria-hidden="true">${axis}</div>
+      <div class="plot" style="height: ${height}px" role="img" aria-label="${escapeHtml(label)}">
+        ${shades}${band}${grid}
+        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">${paths}</svg>
+        ${overlays}
+      </div>
+    </div>`;
+}
+
+function svgPath(d, colour, width = 2, dashed = false) {
+  return `<path d="${d}" fill="none" stroke="${colour}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"
+    ${dashed ? 'stroke-dasharray="6 4"' : ''} vector-effect="non-scaling-stroke"></path>`;
+}
+
+/* ------------------------------------------------------------------------ */
+/* 4f. Heating check card                                                   */
+/* ------------------------------------------------------------------------ */
+
+const HEATING_PERIODS = [24, 48, 168];
+
+class BastideHeatingCard extends BastideCard {
+  static get styles() {
+    return CHART_STYLES;
+  }
+
+  static getStubConfig() {
+    return {};
+  }
+
+  getCardSize() {
+    return 14;
+  }
+
+  edgeAccent() {
+    return 'orange';
+  }
+
+  // The card reads the history on a timer instead of redrawing on every change.
+  watchedEntities() {
+    return [];
+  }
+
+  set hass(hass) {
+    super.hass = hass;
+    this._maybeFetch();
+  }
+
+  setConfig(config) {
+    super.setConfig(config);
+    this._hours = this._hours || toNumber(config.hours) || 48;
+    this._fetchedAt = 0;
+    this._maybeFetch();
+  }
+
+  onLocal(action) {
+    if (!action.startsWith('hours:')) return;
+    this._hours = Number(action.slice(6));
+    this._data = null;
+    this._fetchedAt = 0;
+    this._renderKey = '';
+    this._render();
+    this._maybeFetch();
+  }
+
+  _maybeFetch() {
+    if (!this._hass || !this._config || this._fetching) return;
+    if (Date.now() - (this._fetchedAt || 0) < 5 * 60 * 1000) return;
+    this._fetch();
+  }
+
+  async _fetch() {
+    this._fetching = true;
+    const config = this._config;
+    const end = new Date();
+    const start = new Date(end.getTime() - this._hours * 3600 * 1000);
+    try {
+      const plain = await fetchHistory(this._hass, [
+        config.outdoor_entity, config.boiler_threshold_entity, config.heat_pump_threshold_entity,
+        config.heat_pump_mode_entity, config.boiler_entity, config.presence_entity,
+      ], start, end, false);
+      const rooms = await fetchHistory(this._hass, entityList(config.rooms), start, end, true);
+      this._data = { start: start.getTime(), end: end.getTime(), plain, rooms };
+      this._error = false;
+    } catch (err) {
+      this._error = true;
+    }
+    this._fetchedAt = Date.now();
+    this._fetching = false;
+    this._renderKey = '';
+    this._render();
+  }
+
+  renderContent() {
+    const config = this._config;
+    const t = (key, vars) => this.t(`heating.${key}`, vars);
+    const periods = HEATING_PERIODS.map((hours) => `
+      <button type="button" class="seg${hours === this._hours ? ' active' : ''}" aria-pressed="${hours === this._hours}"
+        data-local="hours:${hours}"><span>${escapeHtml(t(`period_${hours}`))}</span></button>`).join('');
+    const header = ui.header({
+      icon: 'mdi:radiator',
+      title: config.title || t('title'),
+      accent: 'orange',
+      extra: `<div class="segmented accent-orange" role="group" aria-label="${escapeHtml(t('period'))}">${periods}</div>`,
+    });
+    if (this._error) return header + ui.setup(t('error'));
+    if (!this._data) return header + ui.setup(t('loading'));
+    return header + this._body();
+  }
+
+  _body() {
+    const hass = this._hass;
+    const config = this._config;
+    const t = (key, vars) => this.t(`heating.${key}`, vars);
+    const { start, end, plain, rooms } = this._data;
+    const span = end - start;
+    const xOf = (time) => ((time - start) / span) * 1000;
+    const leftOf = (time) => pct(((time - start) / span) * 100);
+    const unit = hass.config?.unit_system?.temperature || '°C';
+    const temp = (value, digits) => formatTemperature(hass, value, unit, digits);
+    const num = (point) => (point ? toNumber(point.s) : null);
+
+    const outdoor = (plain[config.outdoor_entity] || []).filter((p) => toNumber(p.s) !== null);
+    const lows = plain[config.boiler_threshold_entity] || [];
+    const highs = plain[config.heat_pump_threshold_entity] || [];
+    const fixed = toNumber(config.switch_over) ?? CLIMATE_DEFAULTS.switch_over;
+    const lowAt = (time) => num(pointAt(lows, time)) ?? fixed;
+    const highAt = (time) => num(pointAt(highs, time)) ?? lowAt(time);
+
+    // Which source heats, over time: the boiler thermostat on wins; the heat
+    // pumps count when their common mode allows it and a room thermostat is on.
+    const heatStates = config.heat_pump_heat_states || ['Heat only'];
+    const coolStates = config.heat_pump_cool_states || ['Cool only'];
+    const roomSeries = entityList(config.rooms).map((id) => rooms[id] || []);
+    const sources = mergeShortSpans(combinedSpans(start, end, [plain[config.heat_pump_mode_entity], plain[config.boiler_entity], ...roomSeries], ([mode, boiler, ...thermostats]) => {
+      if (boiler && ['heat', 'on'].includes(boiler.s)) return 'boiler';
+      const anyRoom = (state) => !roomSeries.length || thermostats.some((p) => p && p.s === state);
+      if (mode && heatStates.includes(mode.s) && anyRoom('heat')) return 'pac';
+      if (mode && coolStates.includes(mode.s) && anyRoom('cool')) return 'cool';
+      return 'off';
+    }), 120000);
+    const presence = config.presence_entity
+      ? mergeShortSpans(combinedSpans(start, end, [plain[config.presence_entity]], ([p]) => (p && isUsable({ state: p.s }) ? p.s : null)), 60000)
+      : [];
+
+    // What the automation did, newest first, each switch checked against the thresholds.
+    const entries = [];
+    for (let i = 1; i < sources.length; i += 1) {
+      const now = sources[i];
+      const before = sources[i - 1];
+      const out = num(pointAt(outdoor, now.from));
+      let what = `start_${now.value}`;
+      if (now.value === 'boiler' && before.value === 'pac') what = 'to_boiler';
+      if (now.value === 'pac' && before.value === 'boiler') what = 'back_pac';
+      let status = 'info';
+      let why = out === null ? '' : t('why_outdoor', { value: temp(out, 1) });
+      if (out !== null && now.value === 'boiler') {
+        status = out <= highAt(now.from) ? 'ok' : 'check';
+        if (status === 'check') why = t('why_check_boiler', { value: temp(out, 1) });
+      }
+      if (out !== null && now.value === 'pac') {
+        status = out >= lowAt(now.from) ? 'ok' : 'check';
+        if (status === 'check') why = t('why_check_pac', { value: temp(out, 1) });
+      }
+      entries.push({ time: now.from, kind: now.value, what: t(what), why, status });
+    }
+    for (let i = 1; i < presence.length; i += 1) {
+      if (presence[i].value === null) continue;
+      entries.push({ time: presence[i].from, kind: 'mode', what: t('mode_change', { mode: presence[i].value }), why: '', status: 'info' });
+    }
+    entries.sort((a, b) => b.time - a.time);
+    const switches = entries.filter((e) => e.kind !== 'mode' && e.status !== 'info');
+    const toCheck = entries.filter((e) => e.status === 'check').length;
+
+    // Key figures.
+    const hoursOf = (value) => sources.filter((s) => s.value === value).reduce((a, s) => a + s.to - s.from, 0) / 3600000;
+    const outdoorMean = timeMean(outdoor, start, end);
+    const kpi = (label, value, unitText, note, colour) => `
+      <div class="kpi" style="--kpi: ${colour}">
+        <span class="kpi-label">${escapeHtml(label)}</span>
+        <span class="kpi-value">${escapeHtml(value)}<span class="kpi-unit">${escapeHtml(unitText)}</span></span>
+        <span class="kpi-note">${escapeHtml(note)}</span>
+      </div>`;
+    const kpis = `<div class="kpis">
+      ${kpi(t('kpi_outdoor'), outdoorMean === null ? '—' : formatNumber(hass, outdoorMean, 1), ` ${unit}`, t(`period_note_${this._hours}`), 'var(--secondary-text-color)')}
+      ${kpi(t('kpi_hp'), formatNumber(hass, hoursOf('pac'), 0), ' h', t('kpi_running'), 'var(--bc-hp)')}
+      ${kpi(t('kpi_boiler'), formatNumber(hass, hoursOf('boiler'), 0), ' h', t('kpi_running'), 'var(--bc-boiler)')}
+      ${kpi(t('kpi_switches'), String(switches.length), '', toCheck ? t('kpi_some', { n: toCheck }) : t('kpi_all_ok'), 'var(--bc-green)')}
+      ${kpi(t('kpi_check'), String(toCheck), '', toCheck ? t('kpi_check_note') : t('kpi_nothing'), 'var(--bc-yellow)')}
+    </div>`;
+
+    // Time axis.
+    const step = { 24: 3, 48: 6, 168: 24 }[this._hours] || 6;
+    const locale = hass.locale?.language || hass.language || 'en';
+    const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+    const ticksX = [];
+    const first = new Date(start);
+    first.setMinutes(0, 0, 0);
+    first.setHours(Math.ceil((first.getHours() + (start > first.getTime() ? 1 : 0)) / step) * step);
+    for (let time = first.getTime(); time < end; time += step * 3600000) {
+      const date = new Date(time);
+      const label = date.getHours() === 0 || step >= 24
+        ? `${weekday.format(date).replace('.', '')} ${String(date.getHours()).padStart(2, '0')}h`
+        : `${String(date.getHours()).padStart(2, '0')}h`;
+      ticksX.push(`<span style="left: ${leftOf(time)}; transform: translateX(-50%)">${escapeHtml(label)}</span>`);
+    }
+    const axisX = `<div class="axis-x" aria-hidden="true">${ticksX.join('')}</div>`;
+
+    // Outdoor chart with the switch-over thresholds.
+    const values = outdoor.map((p) => toNumber(p.s)).concat([lowAt(end), highAt(end)]);
+    const yMin = Math.floor((Math.min(...values) - 2) / 5) * 5;
+    const yMax = Math.max(yMin + 10, Math.ceil((Math.max(...values) + 2) / 5) * 5);
+    const yOf = (value) => Math.min(100, Math.max(0, (1 - (value - yMin) / (yMax - yMin)) * 100));
+    const line = (points, valueOf) => {
+      let d = '';
+      const initial = pointAt(points, start);
+      if (initial && valueOf(initial) !== null) d += `M0 ${yOf(valueOf(initial)).toFixed(2)} `;
+      for (const p of points) {
+        if (p.t <= start || p.t > end) continue;
+        const v = valueOf(p);
+        if (v === null) continue;
+        d += `${d ? 'L' : 'M'}${xOf(p.t).toFixed(1)} ${yOf(v).toFixed(2)} `;
+      }
+      const last = pointAt(points, end);
+      if (d && last && valueOf(last) !== null) d += `L1000 ${yOf(valueOf(last)).toFixed(2)}`;
+      return d;
+    };
+    const stepLine = (points, fallback) => {
+      const spans = combinedSpans(start, end, [points], ([p]) => (p ? toNumber(p.s) : null) ?? fallback);
+      return spans.map((s, i) => `${i ? 'L' : 'M'}${xOf(s.from).toFixed(1)} ${yOf(s.value).toFixed(2)} L${xOf(s.to).toFixed(1)} ${yOf(s.value).toFixed(2)}`).join(' ');
+    };
+    const outdoorPath = line(outdoor, (p) => toNumber(p.s));
+    let extremes = '';
+    if (outdoor.length) {
+      const inRange = outdoor.filter((p) => p.t >= start && p.t <= end);
+      if (inRange.length > 1) {
+        const lowPoint = inRange.reduce((a, p) => (toNumber(p.s) < toNumber(a.s) ? p : a));
+        const highPoint = inRange.reduce((a, p) => (toNumber(p.s) > toNumber(a.s) ? p : a));
+        const mark = (p, key, dy) => `
+          <span class="pt" style="left: ${leftOf(p.t)}; top: ${pct(yOf(toNumber(p.s)))}; background: var(--primary-text-color)"></span>
+          <span class="pt-label" style="left: ${leftOf(p.t)}; top: ${pct(yOf(toNumber(p.s)))}; transform: translate(-50%, ${dy})">${escapeHtml(t(key, { value: temp(toNumber(p.s), 1) }))}</span>`;
+        extremes = mark(lowPoint, 'min', '8px') + mark(highPoint, 'max', '-28px');
+      }
+    }
+    const low = lowAt(end);
+    const high = highAt(end);
+    const outdoorChart = `
+      <div class="block">
+        <div class="block-head">
+          <h3 class="block-title">${escapeHtml(t('outdoor_title'))}</h3>
+          <div class="legend">
+            <span><span class="key-line" style="background: var(--primary-text-color)"></span>${escapeHtml(t('outdoor'))}</span>
+            <span><span class="key-line" style="background: var(--bc-hp)"></span>${escapeHtml(t('threshold_hp', { value: temp(high) }))}</span>
+            <span><span class="key-line" style="background: var(--bc-boiler)"></span>${escapeHtml(t('threshold_boiler', { value: temp(low) }))}</span>
+          </div>
+        </div>
+        ${timeChart({
+          height: 190,
+          ticks: niceTicks(yMin, yMax, 5).map((v) => ({ value: v, label: temp(v) })),
+          yOf,
+          band: `<span class="band" style="top: ${pct(yOf(high))}; height: ${pct(yOf(low) - yOf(high))}"></span>`,
+          paths: svgPath(stepLine(highs, high), 'var(--bc-hp)') + svgPath(stepLine(lows, low), 'var(--bc-boiler)') + (outdoorPath ? svgPath(outdoorPath, 'var(--primary-text-color)') : ''),
+          overlays: extremes,
+          label: t('outdoor_title'),
+        })}
+        ${this._strip(t('source'), sources, (value) => ({
+          pac: ['var(--bc-hp)', t('src_pac')], boiler: ['var(--bc-boiler)', t('src_boiler')],
+          cool: ['var(--bc-teal)', t('src_cool')], off: ['var(--bc-surface)', t('src_off')],
+        }[value]), leftOf, span)}
+        ${presence.length ? this._strip(t('mode'), presence, (value, index) => [
+          `color-mix(in srgb, var(--primary-text-color) ${index % 2 ? 14 : 8}%, transparent)`, value || '',
+        ], leftOf, span) : ''}
+        ${axisX}
+      </div>`;
+
+    // One small chart per room: temperature, target, and when it heats.
+    const multiples = entityItems(config.rooms).map((item) => {
+      const points = rooms[item.entity] || [];
+      const name = item.name || this._hass.states[item.entity]?.attributes?.friendly_name || item.entity;
+      const currentOf = (p) => toNumber(p.a?.current_temperature);
+      const targetOf = (p) => toNumber(p.a?.temperature);
+      const temps = points.map(currentOf).concat(points.map(targetOf)).filter((v) => v !== null);
+      if (!temps.length) {
+        return `<div class="multiple"><div class="multiple-head"><span class="name">${escapeHtml(name)}</span></div>${ui.setup(t('no_data'))}</div>`;
+      }
+      const rMin = Math.floor(Math.min(...temps)) - 1;
+      const rMax = Math.max(rMin + 4, Math.ceil(Math.max(...temps)) + 1);
+      const ry = (value) => (1 - (value - rMin) / (rMax - rMin)) * 100;
+      const path = (valueOf, stepped) => {
+        const spans = combinedSpans(start, end, [points], ([p]) => (p ? valueOf(p) : null));
+        if (stepped) {
+          return spans.filter((s) => s.value !== null)
+            .map((s, i) => `${i ? 'L' : 'M'}${xOf(s.from).toFixed(1)} ${ry(s.value).toFixed(2)} L${xOf(s.to).toFixed(1)} ${ry(s.value).toFixed(2)}`).join(' ');
+        }
+        return spans.filter((s) => s.value !== null).map((s, i) => `${i ? 'L' : 'M'}${xOf(s.from).toFixed(1)} ${ry(s.value).toFixed(2)}`).join(' ');
+      };
+      const heatingColour = item.kind === 'boiler' ? 'var(--bc-boiler)' : 'var(--bc-hp)';
+      const heating = combinedSpans(start, end, [points], ([p]) => (p?.a?.hvac_action === 'heating' ? 'on' : 'off'))
+        .filter((s) => s.value === 'on')
+        .map((s) => `<span class="shade" style="left: ${leftOf(s.from)}; width: ${pct(((s.to - s.from) / span) * 100)}; background: color-mix(in srgb, ${heatingColour} 30%, transparent)"></span>`)
+        .join('');
+      // Verdict: how far the room stays below its target while the thermostat
+      // is on. Being warmer than the target (sun, mild days) is not a fault.
+      let gapTotal = 0;
+      let onTime = 0;
+      for (const s of combinedSpans(start, end, [points], ([p]) => (p && p.s !== 'off' && currentOf(p) !== null && targetOf(p) !== null
+        ? Math.max(0, targetOf(p) - currentOf(p)) : null))) {
+        if (s.value === null) continue;
+        gapTotal += s.value * (s.to - s.from);
+        onTime += s.to - s.from;
+      }
+      const gap = onTime ? gapTotal / onTime : null;
+      let verdict = t('verdict_off');
+      let flagged = false;
+      if (gap !== null && gap <= 0.5) verdict = t('verdict_ok');
+      if (gap !== null && gap > 0.5) {
+        verdict = t('verdict_gap', { value: temp(gap, 1) });
+        flagged = true;
+      }
+      return `
+        <div class="multiple${flagged ? ' flag' : ''}">
+          <div class="multiple-head">
+            <button type="button" class="name" data-entity="${escapeHtml(item.entity)}">${escapeHtml(name)}</button>
+            <span class="state" style="color: ${flagged ? 'var(--bc-yellow)' : 'var(--secondary-text-color)'}">${escapeHtml(verdict)}</span>
+          </div>
+          ${timeChart({
+            height: 120,
+            ticks: niceTicks(rMin, rMax, 2).map((v) => ({ value: v, label: formatNumber(hass, v, 0) })),
+            yOf: ry,
+            shades: heating,
+            paths: svgPath(path(targetOf, true), 'color-mix(in srgb, var(--primary-text-color) 60%, transparent)', 1.5)
+              + svgPath(path(currentOf, false), 'var(--bc-teal)'),
+            label: `${name} : ${verdict}`,
+          })}
+        </div>`;
+    }).join('');
+    const roomsBlock = entityItems(config.rooms).length ? `
+      <div class="block">
+        <div class="block-head">
+          <h3 class="block-title">${escapeHtml(t('rooms_title'))}</h3>
+          <div class="legend">
+            <span><span class="key-line" style="background: var(--bc-teal)"></span>${escapeHtml(t('legend_room'))}</span>
+            <span><span class="key-line" style="background: color-mix(in srgb, var(--primary-text-color) 60%, transparent)"></span>${escapeHtml(t('legend_target'))}</span>
+            <span><span class="key-box" style="background: color-mix(in srgb, var(--bc-hp) 30%, transparent)"></span>${escapeHtml(t('legend_hp'))}</span>
+          </div>
+        </div>
+        <div class="multiples">${multiples}</div>
+      </div>` : '';
+
+    // The log.
+    const when = new Intl.DateTimeFormat(locale, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    const kindColour = { pac: 'var(--bc-hp)', boiler: 'var(--bc-boiler)', cool: 'var(--bc-teal)', off: 'var(--secondary-text-color)', mode: 'var(--bc-steel)' };
+    const icons = { ok: 'mdi:check', check: 'mdi:alert', info: 'mdi:information-outline' };
+    const max = toNumber(config.max_events) || 10;
+    const rows = entries.slice(0, max).map((e) => `
+      <tr>
+        <td style="white-space: nowrap; color: var(--secondary-text-color)">${escapeHtml(when.format(new Date(e.time)))}</td>
+        <td><span class="kind" style="background: ${kindColour[e.kind]}"></span>${escapeHtml(e.what)}</td>
+        <td style="color: var(--secondary-text-color)">${escapeHtml(e.why)}</td>
+        <td><span class="verdict ${e.status}"><ha-icon icon="${icons[e.status]}"></ha-icon>${escapeHtml(t(e.status))}</span></td>
+      </tr>`).join('');
+    const logBlock = `
+      <div class="block">
+        <div class="block-head"><h3 class="block-title">${escapeHtml(t('log_title'))}</h3></div>
+        ${rows ? `<div class="table-wrap"><table class="data">
+          <thead><tr><th scope="col">${escapeHtml(t('col_when'))}</th><th scope="col">${escapeHtml(t('col_what'))}</th>
+            <th scope="col">${escapeHtml(t('col_why'))}</th><th scope="col">${escapeHtml(t('col_check'))}</th></tr></thead>
+          <tbody>${rows}</tbody></table></div>` : ui.setup(t('empty'))}
+      </div>`;
+
+    return kpis + outdoorChart + roomsBlock + logBlock;
+  }
+
+  // A coloured band of spans along the time axis (heat source, presence mode).
+  _strip(label, spans, style, leftOf, span) {
+    const segments = spans.map((s, index) => {
+      const [background, text] = style(s.value, index) || ['transparent', ''];
+      const width = ((s.to - s.from) / span) * 100;
+      const dark = background.startsWith('var(--bc-') && background !== 'var(--bc-surface)';
+      return `<span class="strip-seg" style="left: ${leftOf(s.from)}; width: ${pct(width)}; background: ${background};
+        color: ${dark ? 'var(--bc-on-accent)' : 'var(--primary-text-color)'}" title="${escapeHtml(text)}">${width > 7 ? escapeHtml(text) : ''}</span>`;
+    }).join('');
+    return `<div class="strip-row"><span class="strip-label">${escapeHtml(label)}</span><div class="strip-bar">${segments}</div></div>`;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* 4g. Insulation card                                                      */
+/* ------------------------------------------------------------------------ */
+
+class BastideInsulationCard extends BastideCard {
+  static get styles() {
+    return CHART_STYLES;
+  }
+
+  static getStubConfig() {
+    return {};
+  }
+
+  getCardSize() {
+    return 16;
+  }
+
+  edgeAccent() {
+    return 'pink';
+  }
+
+  watchedEntities() {
+    return [];
+  }
+
+  set hass(hass) {
+    super.hass = hass;
+    this._maybeFetch();
+  }
+
+  setConfig(config) {
+    super.setConfig(config);
+    this._fetchedAt = 0;
+    this._maybeFetch();
+  }
+
+  _rooms() {
+    return (Array.isArray(this._config.rooms) ? this._config.rooms : []).filter((room) => room && room.name);
+  }
+
+  _maybeFetch() {
+    if (!this._hass || !this._config || this._fetching) return;
+    if (Date.now() - (this._fetchedAt || 0) < 60 * 60 * 1000) return;
+    this._fetch();
+  }
+
+  async _fetch() {
+    this._fetching = true;
+    const config = this._config;
+    const hass = this._hass;
+    const rooms = this._rooms();
+    const now = new Date();
+    try {
+      const daily = await fetchStatistics(hass, [
+        config.outdoor_entity, config.boiler_hours_entity, ...rooms.map((r) => r.heating_energy),
+      ], new Date(now.getTime() - 365 * 86400000), now, 'day');
+      const nights = await fetchStatistics(hass, [
+        config.outdoor_entity, config.boiler_hours_entity,
+        ...rooms.map((r) => r.temperature), ...rooms.map((r) => r.heating_energy),
+      ], new Date(now.getTime() - 30 * 86400000), now, 'hour');
+      // Last summer: this year once June has started, otherwise the year before.
+      const year = now.getMonth() >= 5 ? now.getFullYear() : now.getFullYear() - 1;
+      const summerStart = new Date(year, 4, 1);
+      const summerEnd = new Date(Math.min(new Date(year, 9, 1).getTime(), now.getTime()));
+      const summer = await fetchStatistics(hass, [
+        config.summer_outdoor_entity || config.outdoor_entity,
+        ...rooms.map((r) => r.summer_temperature || r.temperature), ...rooms.map((r) => r.cooling_energy),
+      ], summerStart, summerEnd, 'hour');
+      this._data = { daily, nights, summer, summerStart: summerStart.getTime() };
+      this._error = false;
+    } catch (err) {
+      this._error = true;
+    }
+    this._fetchedAt = Date.now();
+    this._fetching = false;
+    this._renderKey = '';
+    this._render();
+  }
+
+  renderContent() {
+    const config = this._config;
+    const t = (key, vars) => this.t(`insulation.${key}`, vars);
+    const header = ui.header({ icon: 'mdi:home-thermometer', title: config.title || t('title'), accent: 'pink' });
+    if (!this._rooms().length || !config.outdoor_entity) return header + ui.setup(t('setup'));
+    if (this._error) return header + ui.setup(t('error'));
+    if (!this._data) return header + ui.setup(t('loading'));
+    return `${header}
+      <p class="intro">${escapeHtml(t('intro'))}</p>
+      <div class="columns">
+        <div class="block accent-hp">
+          <h3 class="season-title"><ha-icon icon="mdi:snowflake"></ha-icon>${escapeHtml(t('winter'))}</h3>
+          ${this._signature()}
+          ${this._timeConstants()}
+        </div>
+        <div class="block accent-boiler">
+          <h3 class="season-title"><ha-icon icon="mdi:white-balance-sunny"></ha-icon>${escapeHtml(t('summer'))}</h3>
+          ${this._hotDay()}
+          ${this._overheating()}
+        </div>
+      </div>
+      ${this._methods()}`;
+  }
+
+  // Energy signature: heat delivered per day against the mean outdoor temperature.
+  _signature() {
+    const hass = this._hass;
+    const config = this._config;
+    const t = (key, vars) => this.t(`insulation.${key}`, vars);
+    const unit = hass.config?.unit_system?.temperature || '°C';
+    const daily = this._data.daily;
+    const scop = toNumber(config.heat_pump_scop) || 4.1;
+    const boilerKw = toNumber(config.boiler_power_kw);
+    const byDay = new Map();
+    for (const row of daily[config.outdoor_entity] || []) byDay.set(row.start, { outdoor: row.mean, heat: 0, boilerHours: 0 });
+    for (const room of this._rooms()) {
+      for (const row of daily[room.heating_energy] || []) {
+        if (byDay.has(row.start) && row.change > 0) byDay.get(row.start).heat += row.change * scop;
+      }
+    }
+    for (const row of daily[config.boiler_hours_entity] || []) {
+      if (byDay.has(row.start) && row.change > 0) byDay.get(row.start).boilerHours += row.change;
+    }
+    const points = [];
+    let excluded = 0;
+    for (const day of byDay.values()) {
+      if (day.outdoor === null) continue;
+      const boilerDay = day.boilerHours > 0.25;
+      if (boilerDay && !boilerKw) {
+        excluded += 1;
+        continue;
+      }
+      const heat = day.heat + (boilerDay ? day.boilerHours * boilerKw : 0);
+      if (heat < 0.5) continue;
+      points.push({ x: day.outdoor, y: heat, boiler: boilerDay });
+    }
+    const sub = t('signature_sub', { scop: formatNumber(hass, scop, 1) })
+      + (boilerKw ? t('signature_boiler', { kw: formatNumber(hass, boilerKw, 0) }) : (excluded ? t('signature_noboiler', { n: excluded }) : ''));
+    const head = `
+      <div class="block-head">
+        <div><h4 class="block-title">${escapeHtml(t('signature'))}</h4><p class="panel-sub">${escapeHtml(sub)}</p></div>
+        <div class="legend">
+          <span><span class="key-dot" style="background: var(--bc-hp)"></span>${escapeHtml(t('legend_hp_day'))}</span>
+          <span><span class="key-dot" style="background: var(--bc-boiler)"></span>${escapeHtml(t('legend_boiler_day'))}</span>
+        </div>
+      </div>`;
+    if (points.length < 10) return `<div class="block">${head}${ui.setup(t('need_days', { n: points.length }))}</div>`;
+
+    const fit = linearFit(points.map((p) => p.x), points.map((p) => p.y));
+    const balance = fit.slope < 0 ? -fit.intercept / fit.slope : null;
+    const xMin = Math.floor(Math.min(...points.map((p) => p.x)) / 5) * 5 - 2;
+    const xMax = Math.max(xMin + 10, Math.ceil(Math.max(...points.map((p) => p.x), balance ?? -99) / 5) * 5 + 2);
+    const yMax = Math.max(10, Math.ceil(Math.max(...points.map((p) => p.y)) / 10) * 10);
+    const sx = (x) => ((x - xMin) / (xMax - xMin)) * 100;
+    const sy = (y) => (1 - y / yMax) * 100;
+    const dots = points.map((p) => `<span class="pt" style="left: ${pct(sx(p.x))}; top: ${pct(sy(p.y))};
+      background: ${p.boiler ? 'var(--bc-boiler)' : 'var(--bc-hp)'}"></span>`).join('');
+    let trend = '';
+    let callouts = '';
+    if (balance !== null) {
+      const yAtMin = fit.intercept + fit.slope * xMin;
+      trend = svgPath(`M${(sx(xMin) * 10).toFixed(1)} ${sy(yAtMin).toFixed(2)} L${(sx(balance) * 10).toFixed(1)} ${sy(0).toFixed(2)}`,
+        'color-mix(in srgb, var(--primary-text-color) 55%, transparent)');
+      const wk = Math.round((-fit.slope * 1000 / 24) / 10) * 10;
+      callouts = `
+        <span class="callout" style="left: 3%; top: 4%">${escapeHtml(t('slope', { kwh: formatNumber(hass, -fit.slope, 1), wk }))}</span>
+        <span class="callout" style="left: ${pct(Math.min(96, sx(balance)))}; bottom: 14px; transform: translateX(-92%)">${escapeHtml(t('balance', { value: formatTemperature(hass, balance, unit, 0) }))}</span>`;
+    }
+    const xTicks = niceTicks(xMin, xMax, 5).map((x) => `<span style="left: ${pct(sx(x))}; transform: translateX(-50%)">${escapeHtml(formatTemperature(hass, x, unit, 0))}</span>`).join('');
+    return `
+      <div class="block">
+        ${head}
+        ${timeChart({
+          height: 230,
+          ticks: niceTicks(0, yMax, yMax > 40 ? 20 : 10).map((v) => ({ value: v, label: `${v} kWh` })),
+          yOf: sy,
+          paths: trend,
+          overlays: dots + callouts,
+          label: t('signature'),
+        })}
+        <div class="axis-x" aria-hidden="true">${xTicks}</div>
+      </div>`;
+  }
+
+  // Time constant: how fast each room cools, at night with the heating off.
+  _timeConstants() {
+    const hass = this._hass;
+    const config = this._config;
+    const t = (key, vars) => this.t(`insulation.${key}`, vars);
+    const nights = this._data.nights;
+    const outdoor = new Map((nights[config.outdoor_entity] || []).map((r) => [r.start, r.mean]));
+    const boiler = new Map((nights[config.boiler_hours_entity] || []).map((r) => [r.start, r.change]));
+    const results = this._rooms().map((room) => {
+      const inside = nights[room.temperature] || [];
+      const heat = new Map((nights[room.heating_energy] || []).map((r) => [r.start, r.change]));
+      const taus = [];
+      let run = [];
+      const close = () => {
+        if (run.length >= 5) {
+          const xs = run.map((r, i) => i);
+          const ys = run.map((r) => Math.log(r.gap));
+          const fit = linearFit(xs, ys);
+          if (fit.slope < 0) {
+            const tau = -1 / fit.slope;
+            if (tau > 2 && tau < 400) taus.push(tau);
+          }
+        }
+        run = [];
+      };
+      for (const row of inside) {
+        const hour = new Date(row.start).getHours();
+        const night = hour >= 21 || hour < 7;
+        const out = outdoor.get(row.start);
+        const quiet = (heat.get(row.start) ?? 0) <= 0.01 && (boiler.get(row.start) ?? 0) <= 0.01;
+        const previous = run[run.length - 1];
+        const continues = previous && row.start - previous.start === 3600000 && row.mean <= previous.temp + 0.3;
+        if (night && quiet && row.mean !== null && out != null && row.mean - out > 3) {
+          if (previous && !continues) close();
+          run.push({ start: row.start, temp: row.mean, gap: row.mean - out });
+        } else {
+          close();
+        }
+      }
+      close();
+      return { name: room.name, tau: taus.length ? median(taus) : null, nights: taus.length };
+    });
+    const known = results.filter((r) => r.tau !== null);
+    const head = `
+      <div><h4 class="block-title">${escapeHtml(t('tau'))}</h4><p class="panel-sub">${escapeHtml(t('tau_sub'))}</p></div>`;
+    if (!known.length) return `<div class="block">${head}${ui.setup(t('tau_none'))}</div>`;
+    const maxTau = Math.max(...known.map((r) => r.tau));
+    const worst = known.reduce((a, r) => (r.tau < a.tau ? r : a));
+    const best = known.reduce((a, r) => (r.tau > a.tau ? r : a));
+    const bars = results.map((r) => `
+      <div class="bar-row">
+        <span class="state" style="font-size: 13px; color: var(--primary-text-color)">${escapeHtml(r.name)}</span>
+        <div class="bar-line">
+          ${r.tau === null ? `<span class="state">${escapeHtml(t('tau_missing'))}</span>` : `
+          <span class="bar" style="width: ${pct((r.tau / maxTau) * 80)}; background: ${known.length > 1 && r === worst ? 'var(--bc-pink)' : 'color-mix(in srgb, var(--primary-text-color) 30%, transparent)'}"></span>
+          <span class="bar-value">${escapeHtml(formatNumber(hass, r.tau, 0))} h</span>
+          <span class="state">${escapeHtml(t(r.nights < 3 ? 'tau_few' : 'tau_nights', { n: r.nights }))}</span>`}
+        </div>
+      </div>`).join('');
+    const insight = known.length > 1 && best !== worst && worst.nights >= 2 && best.nights >= 2
+      ? `<p class="note-box">${escapeHtml(t('tau_insight', { room: worst.name, best: best.name, ratio: formatNumber(hass, best.tau / worst.tau, 1) }))}</p>`
+      : '';
+    return `<div class="block">${head}<div class="bars">${bars}</div>${insight}</div>`;
+  }
+
+  _summerRows(id) {
+    return this._data.summer[id] || [];
+  }
+
+  // The hottest day with the air conditioning off in the living room.
+  _hotDay() {
+    const hass = this._hass;
+    const config = this._config;
+    const t = (key, vars) => this.t(`insulation.${key}`, vars);
+    const unit = hass.config?.unit_system?.temperature || '°C';
+    const room = this._rooms().find((r) => r.kind === 'living') || this._rooms()[0];
+    const head = (sub) => `
+      <div class="block-head">
+        <div><h4 class="block-title">${escapeHtml(t('hot_day'))}</h4>${sub ? `<p class="panel-sub">${escapeHtml(sub)}</p>` : ''}</div>
+        <div class="legend">
+          <span><span class="key-line" style="background: var(--primary-text-color)"></span>${escapeHtml(t('outdoor'))}</span>
+          <span><span class="key-line" style="background: var(--bc-teal)"></span>${escapeHtml(room.name)}</span>
+        </div>
+      </div>`;
+    const inside = new Map(this._summerRows(room.summer_temperature || room.temperature).map((r) => [r.start, r.mean]));
+    const cooling = new Map(this._summerRows(room.cooling_energy).map((r) => [r.start, r.change]));
+    const days = new Map();
+    for (const row of this._summerRows(config.summer_outdoor_entity || config.outdoor_entity)) {
+      if (row.mean === null || !inside.has(row.start)) continue;
+      const date = new Date(row.start);
+      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      if (!days.has(key)) days.set(key, { date, hours: [], cooling: 0 });
+      const day = days.get(key);
+      day.hours.push({ hour: date.getHours(), out: row.mean, in: inside.get(row.start) });
+      day.cooling += Math.max(0, cooling.get(row.start) ?? 0);
+    }
+    const candidates = [...days.values()].filter((d) => d.hours.length >= 22 && d.cooling <= 0.05);
+    if (!candidates.length) return `<div class="block">${head('')}${ui.setup(t('no_hot_day'))}</div>`;
+    const day = candidates.reduce((a, d) => (Math.max(...d.hours.map((h) => h.out)) > Math.max(...a.hours.map((h) => h.out)) ? d : a));
+    const outs = day.hours.map((h) => h.out);
+    const ins = day.hours.map((h) => h.in);
+    const outPeak = day.hours.reduce((a, h) => (h.out > a.out ? h : a));
+    const inPeak = day.hours.reduce((a, h) => (h.in > a.in ? h : a));
+    const ratio = (Math.max(...ins) - Math.min(...ins)) / Math.max(0.1, Math.max(...outs) - Math.min(...outs));
+    const lag = (inPeak.hour - outPeak.hour + 24) % 24;
+    const yMin = Math.floor((Math.min(...outs, ...ins) - 2) / 5) * 5;
+    const yMax = Math.ceil((Math.max(...outs, ...ins) + 2) / 5) * 5;
+    const yOf = (v) => (1 - (v - yMin) / (yMax - yMin)) * 100;
+    const xOf = (hour) => (hour / 23) * 1000;
+    const path = (key) => day.hours.map((h, i) => `${i ? 'L' : 'M'}${xOf(h.hour).toFixed(1)} ${yOf(h[key]).toFixed(2)}`).join(' ');
+    const dateText = new Intl.DateTimeFormat(hass.locale?.language || 'en', { day: 'numeric', month: 'long' }).format(day.date);
+    const xTicks = [0, 6, 12, 18, 23].map((h) => `<span style="left: ${pct((h / 23) * 100)}; transform: translateX(${h === 0 ? '0' : (h === 23 ? '-100%' : '-50%')})">${String(h).padStart(2, '0')}h</span>`).join('');
+    const stat = (label, value, note) => `
+      <div class="kpi" style="--kpi: var(--bc-teal)">
+        <span class="kpi-label">${escapeHtml(label)}</span>
+        <span class="kpi-value">${escapeHtml(value)}</span>
+        <span class="kpi-note">${escapeHtml(note)}</span>
+      </div>`;
+    return `
+      <div class="block">
+        ${head(t('hot_sub', { room: room.name, date: dateText }))}
+        ${timeChart({
+          height: 200,
+          ticks: niceTicks(yMin, yMax, 5).map((v) => ({ value: v, label: formatTemperature(hass, v, unit, 0) })),
+          yOf,
+          paths: svgPath(path('out'), 'var(--primary-text-color)') + svgPath(path('in'), 'var(--bc-teal)'),
+          label: t('hot_day'),
+        })}
+        <div class="axis-x" aria-hidden="true">${xTicks}</div>
+        <div class="stats">
+          ${stat(t('damping'), `×${formatNumber(hass, ratio, 2)}`, t('damping_note', { n: formatNumber(hass, 1 / Math.max(ratio, 0.01), 0) }))}
+          ${stat(t('lag'), `${lag} h`, t('lag_note', { n: lag }))}
+        </div>
+      </div>`;
+  }
+
+  // Hours too hot last summer, air conditioning off.
+  _overheating() {
+    const hass = this._hass;
+    const config = this._config;
+    const t = (key, vars) => this.t(`insulation.${key}`, vars);
+    const outdoorRows = this._summerRows(config.summer_outdoor_entity || config.outdoor_entity).filter((r) => r.mean !== null);
+    const dateFormat = new Intl.DateTimeFormat(hass.locale?.language || 'en', { day: 'numeric', month: 'long', year: 'numeric' });
+    // Running mean of the daily outdoor means (EN 16798-1, alpha 0.8).
+    const dayMeans = new Map();
+    for (const row of outdoorRows) {
+      const d = new Date(row.start);
+      const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      if (!dayMeans.has(key)) dayMeans.set(key, []);
+      dayMeans.get(key).push(row.mean);
+    }
+    const running = new Map();
+    let rm = null;
+    let previousMean = null;
+    for (const [key, list] of [...dayMeans.entries()].sort((a, b) => a[0] - b[0])) {
+      const mean = list.reduce((a, b) => a + b, 0) / list.length;
+      rm = rm === null ? mean : 0.2 * previousMean + 0.8 * rm;
+      running.set(key, rm);
+      previousMean = mean;
+    }
+    const rows = this._rooms().map((room) => {
+      const inside = this._summerRows(room.summer_temperature || room.temperature);
+      const cooling = new Map(this._summerRows(room.cooling_energy).map((r) => [r.start, r.change]));
+      const living = room.kind === 'living';
+      let hours = 0;
+      let first = null;
+      for (const row of inside) {
+        if (row.mean === null || (cooling.get(row.start) ?? 0) > 0.01) continue;
+        const d = new Date(row.start);
+        const hour = d.getHours();
+        if (living) {
+          // The adaptive limit needs the outdoor running mean of that day.
+          const rmDay = running.get(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime());
+          if (rmDay === undefined) continue;
+          first = first ?? row.start;
+          if (hour >= 9 && hour < 22 && row.mean > 0.33 * rmDay + 21.8) hours += 1;
+        } else {
+          first = first ?? row.start;
+          if ((hour >= 22 || hour < 7) && row.mean > 26) hours += 1;
+        }
+      }
+      if (first === null) {
+        return `<tr><th scope="row">${escapeHtml(room.name)}</th><td colspan="4" style="color: var(--secondary-text-color)">${escapeHtml(t('no_summer'))}</td></tr>`;
+      }
+      const limit = living ? 60 : 32;
+      const pass = hours <= limit;
+      const since = t('since', { date: dateFormat.format(new Date(first)) });
+      return `
+        <tr>
+          <th scope="row">${escapeHtml(room.name)}</th>
+          <td style="color: var(--secondary-text-color)">${escapeHtml(t(living ? 'measure_living' : 'measure_bedroom'))}<br><small>${escapeHtml(since)}</small></td>
+          <td class="num">${hours} h</td>
+          <td style="color: var(--secondary-text-color)">${escapeHtml(t(living ? 'ref_living' : 'ref_bedroom'))}</td>
+          <td><span class="verdict ${pass ? 'ok' : 'fail'}"><ha-icon icon="${pass ? 'mdi:check' : 'mdi:alert'}"></ha-icon>${escapeHtml(t(pass ? 'pass' : 'fail'))}</span></td>
+        </tr>`;
+    }).join('');
+    return `
+      <div class="block">
+        <div><h4 class="block-title">${escapeHtml(t('overheating'))}</h4><p class="panel-sub">${escapeHtml(t('overheating_sub'))}</p></div>
+        <div class="table-wrap"><table class="data">
+          <thead><tr><th scope="col">${escapeHtml(t('col_room'))}</th><th scope="col">${escapeHtml(t('col_measure'))}</th>
+            <th scope="col" style="text-align: right">${escapeHtml(t('col_value'))}</th><th scope="col">${escapeHtml(t('col_ref'))}</th>
+            <th scope="col">${escapeHtml(t('col_verdict'))}</th></tr></thead>
+          <tbody>${rows}</tbody></table></div>
+      </div>`;
+  }
+
+  _methods() {
+    const t = (key) => this.t(`insulation.${key}`);
+    const rows = ['signature', 'tau', 'damping', 'overheating'].map((key) => `
+      <tr>
+        <th scope="row">${escapeHtml(t(`m_${key}_name`))}</th>
+        <td style="color: var(--secondary-text-color)">${escapeHtml(t(`m_${key}_what`))}</td>
+        <td style="color: var(--secondary-text-color)">${escapeHtml(t(`m_${key}_source`))}</td>
+        <td style="color: var(--secondary-text-color)">${escapeHtml(t(`m_${key}_limits`))}</td>
+      </tr>`).join('');
+    return `
+      <div class="block accent-pink">
+        <h3 class="season-title"><ha-icon icon="mdi:book-open-variant"></ha-icon>${escapeHtml(t('methods'))}</h3>
+        <div class="table-wrap"><table class="data" style="min-width: 760px">
+          <thead><tr><th scope="col">${escapeHtml(t('col_indicator'))}</th><th scope="col">${escapeHtml(t('col_how'))}</th>
+            <th scope="col">${escapeHtml(t('col_source'))}</th><th scope="col">${escapeHtml(t('col_limits'))}</th></tr></thead>
+          <tbody>${rows}</tbody></table></div>
+        <p class="intro">${escapeHtml(t('methods_note'))}</p>
+      </div>`;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* 4h. Camera card                                                          */
+/* ------------------------------------------------------------------------ */
+
+const CAMERA_STYLES = `
+  .cam {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
+    border: 2px solid var(--divider-color);
+    box-sizing: border-box;
+  }
+  .cam img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .cam-offline {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--secondary-text-color);
+    --mdc-icon-size: 32px;
+  }
+  .cam-label, .cam-rec {
+    position: absolute;
+    top: 10px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--primary-background-color) 85%, transparent);
+  }
+  .cam-label { left: 10px; color: var(--primary-text-color); }
+  .cam-rec {
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent);
+  }
+  .rec-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  ha-card.hud .cam-label, ha-card.hud .cam-rec { font-family: var(--ha-font-family-heading, inherit); }
+`;
+
+function entityRowsHtml(card, items, accent) {
+  const hass = card._hass;
+  return items.map((item) => {
+    const stateObj = hass.states[item.entity];
+    const domain = item.entity.split('.')[0];
+    const name = item.name || stateObj?.attributes?.friendly_name || item.entity;
+    const icon = item.icon || stateObj?.attributes?.icon || DOMAIN_ICONS[domain] || 'mdi:circle-outline';
+    if (!stateObj) return ui.toggleRow({ entityId: item.entity, icon, name, state: card.t('entities.missing'), accent });
+    const usable = isUsable(stateObj);
+    const canToggle = usable && TOGGLE_DOMAINS.includes(domain);
+    const on = stateObj.state === 'on';
+    return ui.toggleRow({
+      entityId: item.entity,
+      icon,
+      name,
+      state: item.secondary || (canToggle ? formatState(hass, stateObj) : ''),
+      value: canToggle ? '' : (usable ? formatState(hass, stateObj) : card.t('entities.unavailable')),
+      accent,
+      active: canToggle ? on : !IDLE_STATES.includes(stateObj.state),
+      toggle: canToggle ? { on, label: card.t('entities.toggle', { name }) } : null,
+    });
+  });
+}
+
+class BastideCameraCard extends BastideCard {
+  static get styles() {
+    return CAMERA_STYLES;
+  }
+
+  static getConfigForm() {
+    return {
+      schema: [
+        { name: 'entity', selector: { entity: { filter: { domain: 'camera' } } } },
+        { name: 'title', selector: { text: {} } },
+        { name: 'name', selector: { text: {} } },
+        { name: 'entities', selector: { entity: { multiple: true } } },
+      ],
+      computeLabel: (schema) => (schema.name ? lookup(null, `editor.camera.${schema.name}`) : undefined),
+    };
+  }
+
+  static getStubConfig(hass) {
+    const camera = Object.keys(hass?.states || {}).find((id) => id.startsWith('camera.'));
+    return camera ? { entity: camera } : {};
+  }
+
+  getCardSize() {
+    return 6;
+  }
+
+  edgeAccent() {
+    return accentName(this._config?.color, 'pink');
+  }
+
+  watchedEntities() {
+    return [this._config.entity, ...entityItems(this._config.entities).map((i) => i.entity)].filter(Boolean);
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    if (!this._timer) {
+      const seconds = toNumber(this._config?.refresh) || 10;
+      this._timer = setInterval(() => {
+        const img = this.shadowRoot.querySelector('.cam img');
+        if (img && this._src) img.src = `${this._src}&t=${Date.now()}`;
+      }, seconds * 1000);
+    }
+  }
+
+  disconnectedCallback() {
+    clearInterval(this._timer);
+    this._timer = null;
+  }
+
+  renderContent() {
+    const config = this._config;
+    const hass = this._hass;
+    const accent = accentName(config.color, 'pink');
+    const header = ui.header({ icon: 'mdi:cctv', title: config.title || '', accent });
+    const stateObj = config.entity ? hass.states[config.entity] : undefined;
+    this._src = isUsable(stateObj) ? stateObj.attributes?.entity_picture : null;
+    const label = config.name || stateObj?.attributes?.friendly_name || '';
+    const frame = `
+      <button type="button" class="cam accent-${accent}" ${config.entity ? `data-entity="${escapeHtml(config.entity)}"` : ''}>
+        ${this._src
+          ? `<img src="${escapeHtml(`${this._src}&t=${Date.now()}`)}" alt="${escapeHtml(label)}">`
+          : `<span class="cam-offline"><ha-icon icon="mdi:cctv-off"></ha-icon>${escapeHtml(this.t('camera.offline'))}</span>`}
+        ${label ? `<span class="cam-label">${escapeHtml(label)}</span>` : ''}
+        ${this._src ? `<span class="cam-rec"><span class="rec-dot fx-blink"></span>${escapeHtml(this.t('camera.live'))}</span>` : ''}
+      </button>`;
+    const items = entityItems(config.entities);
+    return header + frame + (items.length ? ui.list(entityRowsHtml(this, items, accent)) : '');
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* 4i. Navigation card                                                      */
+/* ------------------------------------------------------------------------ */
+
+const NAV_STYLES = `
+  ha-card.plain {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    clip-path: none;
+  }
+  ha-card.plain .content { padding: 0; }
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .nav-item {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--secondary-text-color);
+    transition: color 0.2s ease, border-color 0.2s ease;
+    --mdc-icon-size: 20px;
+  }
+  .nav-item ha-icon { color: var(--accent); }
+  .nav-item.active, .nav-item:hover {
+    color: var(--primary-text-color);
+    border-bottom-color: var(--accent);
+  }
+  ha-card.hud .nav-item {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  /* On a phone, the bar can sit at the bottom of the screen. */
+  @media (max-width: 600px) {
+    ha-card.bottom {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+      background: var(--card-background-color, var(--ha-card-background));
+      border-top: 2px solid var(--divider-color);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    ha-card.bottom .nav {
+      display: grid;
+      grid-template-columns: repeat(var(--items), minmax(0, 1fr));
+      gap: 0;
+      border-bottom: 0;
+    }
+    ha-card.bottom .nav-item {
+      min-height: 60px;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      padding: 0 4px;
+      font-size: 11px;
+      border-bottom: 0;
+      border-top: 3px solid transparent;
+      margin: -2px 0 0;
+    }
+    ha-card.bottom .nav-item.active { border-top-color: var(--accent); }
+    ha-card.hud.bottom .nav-item { font-size: 12px; }
+  }
+`;
+
+class BastideNavCard extends BastideCard {
+  static get styles() {
+    return NAV_STYLES;
+  }
+
+  getCardSize() {
+    return 1;
+  }
+
+  watchedEntities() {
+    return [];
+  }
+
+  cardClasses() {
+    return ['plain', this._config?.mobile === 'bottom' ? 'bottom' : ''];
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    if (!this._onLocation) {
+      this._onLocation = () => {
+        this._renderKey = '';
+        this._render();
+      };
+      window.addEventListener('location-changed', this._onLocation);
+      window.addEventListener('popstate', this._onLocation);
+    }
+  }
+
+  disconnectedCallback() {
+    if (this._onLocation) {
+      window.removeEventListener('location-changed', this._onLocation);
+      window.removeEventListener('popstate', this._onLocation);
+      this._onLocation = null;
+    }
+  }
+
+  onLocal(action) {
+    if (!action.startsWith('nav:')) return;
+    const path = action.slice(4);
+    if (path === window.location.pathname) return;
+    window.history.pushState(null, '', path);
+    window.dispatchEvent(new CustomEvent('location-changed', { detail: { replace: false } }));
+  }
+
+  renderContent() {
+    const items = Array.isArray(this._config.items) ? this._config.items : [];
+    const here = window.location.pathname;
+    const links = items.map((item) => {
+      const active = item.path === here;
+      return `<button type="button" class="nav-item accent-${accentName(item.color)}${active ? ' active' : ''}"
+        ${active ? 'aria-current="page"' : ''} data-local="nav:${escapeHtml(item.path || '')}">
+        <ha-icon icon="${escapeHtml(item.icon || 'mdi:circle-outline')}"></ha-icon><span>${escapeHtml(item.label || '')}</span></button>`;
+    }).join('');
+    return `<nav class="nav" style="--items: ${Math.max(1, items.length)}" aria-label="${escapeHtml(this.t('nav.aria'))}">${links}</nav>`;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
 /* Registration                                                             */
 /* ------------------------------------------------------------------------ */
 
@@ -2234,6 +4087,30 @@ const BASTIDE_CARDS = [
     element: BastideAgendaCard,
     name: 'Bastide Agenda',
     description: 'The next events of one or more calendars.',
+  },
+  {
+    type: 'bastide-heating-card',
+    element: BastideHeatingCard,
+    name: 'Bastide Heating check',
+    description: 'Checks the heating automation: outdoor temperature against the thresholds, heat source, rooms against their targets, and a log.',
+  },
+  {
+    type: 'bastide-insulation-card',
+    element: BastideInsulationCard,
+    name: 'Bastide Insulation',
+    description: 'How the home reacts to cold and heat: energy signature, time constants, overheating, with the methods and sources.',
+  },
+  {
+    type: 'bastide-camera-card',
+    element: BastideCameraCard,
+    name: 'Bastide Camera',
+    description: 'A camera image refreshed every few seconds, with a list of related devices.',
+  },
+  {
+    type: 'bastide-nav-card',
+    element: BastideNavCard,
+    name: 'Bastide Navigation',
+    description: 'Tabs to move between dashboard views, at the bottom of the screen on phones.',
   },
 ];
 

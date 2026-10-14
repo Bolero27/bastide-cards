@@ -10,6 +10,10 @@ All cards share one look, so they sit together naturally on a dashboard. Every c
 | [Presence](#presence-card) | `custom:bastide-presence-card` | The current presence mode in large type, one-tap mode buttons, outdoor temperature and season. |
 | [Entities](#entities-card) | `custom:bastide-entities-card` | A titled list of devices with on/off switches. |
 | [Agenda](#agenda-card) | `custom:bastide-agenda-card` | The next events of one or more calendars. |
+| [Camera](#camera-card) | `custom:bastide-camera-card` | A camera image refreshed every few seconds, with related devices below it. |
+| [Navigation](#navigation-card) | `custom:bastide-nav-card` | Tabs between dashboard views, at the bottom of the screen on phones. |
+| [Heating check](#heating-check-card) | `custom:bastide-heating-card` | Is the heating automation doing its job? Outdoor temperature against the thresholds, heat source, rooms against their targets, and a checked log. |
+| [Insulation](#insulation-card) | `custom:bastide-insulation-card` | How the home reacts to cold and heat, with the methods and their sources. |
 
 For a dark, game-HUD look across the whole dashboard, pair the cards with [Bastide Theme](https://github.com/Bolero27/bastide-theme).
 
@@ -159,6 +163,95 @@ color: violet
 | `days` | `7` | How many days ahead to look. |
 | `max_events` | `5` | How many events to show. |
 | `color` | `violet` | Accent colour. |
+
+## Camera card
+
+A camera image, refreshed every 10 seconds (`refresh`), with an optional list of devices below it. Tap the image for the live stream.
+
+```yaml
+type: custom:bastide-camera-card
+entity: camera.front_door
+title: Security
+name: Front door
+color: pink
+entities:
+  - entity: input_boolean.security_mode
+    name: Security mode
+```
+
+## Navigation card
+
+Tabs to move between the views of a dashboard. With `mobile: bottom`, the tabs sit at the bottom of the screen on phones.
+
+```yaml
+type: custom:bastide-nav-card
+mobile: bottom
+items:
+  - label: Home
+    icon: mdi:home
+    path: /my-dashboard/home
+    color: orange
+  - label: Heating
+    icon: mdi:thermometer
+    path: /my-dashboard/heating
+    color: orange
+```
+
+## Heating check card
+
+Checks that the heating automation behaves as intended, over 24 hours, 48 hours or 7 days:
+
+- key figures: mean outdoor temperature, hours on the heat pump and on the boiler, switch-overs and how many need a look;
+- the outdoor temperature against the switch-over thresholds, with the heat source and the presence mode underneath;
+- one small chart per room: temperature, target and heating periods, with a verdict;
+- a log of what happened, where each switch-over is checked against the outdoor temperature and the thresholds at that moment.
+
+```yaml
+type: custom:bastide-heating-card
+outdoor_entity: sensor.outdoor_temperature
+boiler_threshold_entity: input_number.boiler_threshold
+heat_pump_threshold_entity: input_number.heat_pump_threshold
+heat_pump_mode_entity: select.thermostats_mode
+boiler_entity: climate.boiler
+presence_entity: input_select.presence
+rooms:
+  - entity: climate.living_room
+    name: Living room
+```
+
+The heat pumps count as running when `heat_pump_mode_entity` is in `heat_pump_heat_states` (default `Heat only`) and a room thermostat is heating. The card reads the Home Assistant history every 5 minutes.
+
+## Insulation card
+
+How the home reacts to cold and heat, from the long-term statistics Home Assistant already keeps:
+
+- **winter**: energy signature (heat delivered per day against the mean outdoor temperature, with the losses in W/K and the balance temperature) and the time constant of each room (how fast it cools at night with the heating off);
+- **summer**: damping and time lag on the hottest day with the air conditioning off, and overheating hours per room;
+- the method, sources and limits of each indicator.
+
+```yaml
+type: custom:bastide-insulation-card
+outdoor_entity: sensor.outdoor_temperature
+heat_pump_scop: 4.1
+boiler_hours_entity: sensor.boiler_burner_hours
+boiler_power_kw: 12
+rooms:
+  - name: Living room
+    kind: living
+    temperature: sensor.living_room_temperature
+    heating_energy: sensor.living_room_heat_pump_heating_energy
+    cooling_energy: sensor.living_room_heat_pump_cooling_energy
+```
+
+| Option | Description |
+| --- | --- |
+| `rooms[].kind` | `living` (adaptive comfort limit, 9 am–10 pm) or `bedroom` (26 °C at night). |
+| `rooms[].summer_temperature` | Another temperature sensor for the summer, if it has a longer history. |
+| `heat_pump_scop` | Turns the heat pumps' electricity into heat. |
+| `boiler_hours_entity`, `boiler_power_kw` | Burner hours per day and boiler power, to count boiler days. Without the power, boiler days are left out. |
+| `summer_outdoor_entity` | Another outdoor sensor for the summer. Avoid a heat pump's outdoor unit sensor: it warms up while running. |
+
+These indicators compare rooms and years and show where to look first; they are not a diagnosis. Each one shows how many days or nights it rests on.
 
 ## Style
 
