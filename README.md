@@ -9,6 +9,7 @@ All cards share one look, so they sit together naturally on a dashboard. Every c
 | [Climate](#climate-card) | `custom:bastide-climate-card` | Which heat source is running and why in winter, the air conditioning in summer. |
 | [Presence](#presence-card) | `custom:bastide-presence-card` | The current presence mode in large type, one-tap mode buttons, outdoor temperature and season. |
 | [Entities](#entities-card) | `custom:bastide-entities-card` | A titled list of devices with on/off switches. |
+| [Agenda](#agenda-card) | `custom:bastide-agenda-card` | The next events of one or more calendars. |
 
 For a dark, game-HUD look across the whole dashboard, pair the cards with [Bastide Theme](https://github.com/Bolero27/bastide-theme).
 
@@ -71,6 +72,11 @@ presence_entity: input_select.presence
 | `title` | `Heating & cooling` | Card title. The default title is translated. |
 | `gauge_min` | `-10` | Lowest temperature on the gauge. |
 | `gauge_max` | `25` | Highest temperature on the gauge. |
+| `layout` | `rows` | `rows`: one line per device. `tiles`: one tile per heat pump with its room temperature and − / + buttons for the target, and a strip per boiler. |
+| `central_mode_entity` | | A `select` holding the common mode of your thermostats, shown as a row of buttons. |
+| `central_modes` | | Limit the buttons to these options of `central_mode_entity`. |
+
+Heat pumps and boilers can also be given as `{ entity, name }` to choose the name shown on the card.
 
 ### How the card decides what is running
 
@@ -133,6 +139,27 @@ entities:
 | `color` | `orange` | Accent colour, one of the accent names below. |
 | `entities` | | Entity IDs, or objects with `entity`, and optionally `name`, `icon` and `secondary`. |
 
+## Agenda card
+
+The next events of one or more calendars, with their day, time and place.
+
+```yaml
+type: custom:bastide-agenda-card
+entities:
+  - calendar.family
+days: 7
+max_events: 5
+color: violet
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `entities` | | Calendar entities. |
+| `title` | `Calendar` | Card title. The default is translated. |
+| `days` | `7` | How many days ahead to look. |
+| `max_events` | `5` | How many events to show. |
+| `color` | `violet` | Accent colour. |
+
 ## Style
 
 Every card is built from the same pieces: a header with a round icon, a headline with a coloured dot, a list of tappable rows, a footer line, chips for values you can tap to change (a season, a threshold) and on/off switches. Text colours, dividers, the card background and the font come from your Home Assistant theme.
@@ -146,7 +173,9 @@ bastide-orange: "#ef6c00"
 
 ### HUD look
 
-When the theme sets `bastide-style: hud` (as [Bastide Theme](https://github.com/Bolero27/bastide-theme) does), every card switches to a game-HUD look: bevelled corners, slanted buttons and chips, condensed uppercase titles. The cards then load the theme's fonts (Barlow and Barlow Condensed) from Google Fonts; set `bastide-fonts: none` in the theme to skip that request.
+When the theme sets `bastide-style: hud` (as [Bastide Theme](https://github.com/Bolero27/bastide-theme) does), every card switches to a game-HUD look: bevelled corners, titles as slanted coloured tabs, slanted buttons and chips, a segmented temperature gauge. The cards then load the theme's fonts (Barlow and Barlow Condensed) from Google Fonts; set `bastide-fonts: none` in the theme to skip that request.
+
+The HUD look is animated: cards slide in, the active presence mode pulses, its name glitches when it changes, fans turn and flames flicker while heating, the current gauge cell blinks, a light sweeps across the cards, and buttons lift on hover. Set `bastide-fx: none` in the theme to turn the animations off. They also stop when the device asks for reduced motion.
 
 ## Languages
 

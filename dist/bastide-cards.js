@@ -10,7 +10,7 @@
  *   4. The cards themselves.
  */
 
-const BASTIDE_VERSION = '0.4.0';
+const BASTIDE_VERSION = '0.5.0';
 const BASTIDE_REPO = 'https://github.com/Bolero27/bastide-cards';
 
 /* ------------------------------------------------------------------------ */
@@ -50,6 +50,18 @@ const STRINGS = {
       missing: 'Entity not found',
       with_target: '{status} · target {target}',
       setup: 'Choose your heat pumps and boilers in the card editor.',
+      target: 'Target',
+      room: 'room {value}',
+      lower: 'Lower the target',
+      raise: 'Raise the target',
+      central_mode: 'Thermostats mode',
+    },
+    agenda: {
+      title: 'Calendar',
+      all_day: 'All day',
+      empty: 'Nothing planned in the next {days} days.',
+      setup: 'Choose one or more calendars in the card editor.',
+      error: 'The calendar could not be read.',
     },
     presence: {
       title: 'Home',
@@ -77,6 +89,13 @@ const STRINGS = {
         color: 'Colour',
         entities: 'Entities',
       },
+      agenda: {
+        entities: 'Calendars',
+        title: 'Title',
+        color: 'Colour',
+        days: 'Days ahead',
+        max_events: 'Events shown',
+      },
       colors: {
         orange: 'Orange', blue: 'Blue', pink: 'Pink', violet: 'Violet',
         teal: 'Teal', yellow: 'Yellow', green: 'Green', steel: 'Steel blue',
@@ -96,6 +115,10 @@ const STRINGS = {
         presence_entity: 'Presence (optional)',
         gauge_min: 'Gauge minimum',
         gauge_max: 'Gauge maximum',
+        layout: 'Layout',
+        layout_rows: 'List',
+        layout_tiles: 'Tiles with target buttons',
+        central_mode_entity: 'Thermostats mode selector (optional)',
       },
     },
   },
@@ -129,6 +152,18 @@ const STRINGS = {
       missing: 'Entité introuvable',
       with_target: '{status} · consigne {target}',
       setup: 'Choisissez vos pompes à chaleur et chaudières dans l’éditeur de la carte.',
+      target: 'Consigne',
+      room: 'pièce {value}',
+      lower: 'Baisser la consigne',
+      raise: 'Monter la consigne',
+      central_mode: 'Mode des thermostats',
+    },
+    agenda: {
+      title: 'Agenda',
+      all_day: 'Toute la journée',
+      empty: 'Rien de prévu dans les {days} prochains jours.',
+      setup: 'Choisissez un ou plusieurs calendriers dans l’éditeur de la carte.',
+      error: 'Impossible de lire le calendrier.',
     },
     presence: {
       title: 'Maison',
@@ -156,6 +191,13 @@ const STRINGS = {
         color: 'Couleur',
         entities: 'Entités',
       },
+      agenda: {
+        entities: 'Calendriers',
+        title: 'Titre',
+        color: 'Couleur',
+        days: 'Jours à afficher',
+        max_events: 'Événements affichés',
+      },
       colors: {
         orange: 'Orange', blue: 'Bleu', pink: 'Rose', violet: 'Violet',
         teal: 'Turquoise', yellow: 'Jaune', green: 'Vert', steel: 'Bleu acier',
@@ -175,6 +217,10 @@ const STRINGS = {
         presence_entity: 'Présence (facultatif)',
         gauge_min: 'Minimum de la jauge',
         gauge_max: 'Maximum de la jauge',
+        layout: 'Disposition',
+        layout_rows: 'Liste',
+        layout_tiles: 'Tuiles avec boutons de consigne',
+        central_mode_entity: 'Sélecteur du mode des thermostats (facultatif)',
       },
     },
   },
@@ -269,13 +315,17 @@ function entityNumber(hass, entityId) {
   return isUsable(stateObj) ? toNumber(stateObj.state) : null;
 }
 
-// Accepts `climate.x`, `[climate.x, …]` or `[{ entity: climate.x }, …]`.
-function entityList(value) {
+// Accepts `climate.x`, `[climate.x, …]` or `[{ entity: climate.x, name }, …]`.
+function entityItems(value) {
   if (!value) return [];
   const list = Array.isArray(value) ? value : [value];
   return list
-    .map((item) => (typeof item === 'string' ? item : item?.entity))
-    .filter((id) => typeof id === 'string' && id.includes('.'));
+    .map((item) => (typeof item === 'string' ? { entity: item } : item))
+    .filter((item) => item && typeof item.entity === 'string' && item.entity.includes('.'));
+}
+
+function entityList(value) {
+  return entityItems(value).map((item) => item.entity);
 }
 
 function fireMoreInfo(node, entityId) {
@@ -584,6 +634,183 @@ const BASE_STYLES = `
   ha-card.hud .row { border-radius: 0; }
   ha-card.hud .list,
   ha-card.hud .footer { border-top-width: 2px; }
+
+  .headline-icon {
+    flex-shrink: 0;
+    color: var(--accent);
+    --mdc-icon-size: 26px;
+  }
+  .steps {
+    display: flex;
+    gap: 6px;
+  }
+  .step {
+    width: 44px;
+    height: 40px;
+    box-sizing: border-box;
+    border: 2px solid var(--divider-color);
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .segmented {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .seg {
+    min-height: 36px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    border: 2px solid var(--divider-color);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--secondary-text-color);
+  }
+  .seg.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bc-on-accent);
+  }
+  ha-card.hud .step,
+  ha-card.hud .seg {
+    border-radius: 0;
+    transform: skewX(-12deg);
+  }
+  ha-card.hud .step > *,
+  ha-card.hud .seg > * {
+    display: inline-block;
+    transform: skewX(12deg);
+  }
+  ha-card.hud .seg {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* HUD: the card title becomes a slanted tab in the card's colour. */
+  ha-card.hud .header .icon { display: none; }
+  ha-card.hud .header .title {
+    flex: 0 1 auto;
+    padding: 3px 16px;
+    background: var(--accent);
+    color: var(--bc-on-accent);
+    transform: skewX(-12deg);
+  }
+  ha-card.hud .header .title > span {
+    display: inline-block;
+    transform: skewX(12deg);
+  }
+  ha-card.hud .header > .chip,
+  ha-card.hud .header > .segmented { margin-left: auto; }
+
+  /* HUD: a coloured edge that runs across the card on hover, and a light sweep. */
+  ha-card.hud {
+    position: relative;
+    overflow: hidden;
+  }
+  .fx-edge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 64px;
+    height: 3px;
+    background: var(--card-edge);
+    pointer-events: none;
+    transition: width 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  ha-card.hud:hover .fx-edge { width: 100%; }
+  .fx-sweep {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 18%;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(243, 246, 251, 0.07), transparent);
+    animation: bc-sweep 9s ease-in-out infinite;
+  }
+  ha-card.hud:hover .fx-sweep { animation-duration: 1.6s; }
+
+  /* HUD: hover and press feedback. */
+  ha-card.hud .toggle,
+  ha-card.hud button.chip,
+  ha-card.hud .step,
+  ha-card.hud .seg {
+    transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.2s ease;
+  }
+  ha-card.hud .toggle:hover,
+  ha-card.hud button.chip:hover,
+  ha-card.hud .step:hover,
+  ha-card.hud .seg:hover {
+    transform: skewX(-12deg) translateY(-2px);
+    filter: brightness(1.2);
+    box-shadow: 0 8px 18px -8px var(--accent, var(--primary-color));
+  }
+  ha-card.hud .toggle:active,
+  ha-card.hud button.chip:active,
+  ha-card.hud .step:active,
+  ha-card.hud .seg:active {
+    transform: skewX(-12deg) translateY(1px) scale(0.97);
+    filter: brightness(1.35);
+  }
+  ha-card.hud .toggle.on {
+    box-shadow: 0 0 14px -2px color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  ha-card.hud .row {
+    transition: background-color 0.2s ease, padding-left 0.2s ease;
+  }
+  ha-card.hud .row:hover { padding-left: 12px; }
+
+  /* Animations, only with the HUD look (theme variable bastide-fx: none turns them off). */
+  @keyframes bc-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes bc-pulse {
+    0%, 100% { box-shadow: 0 0 6px 0 var(--glow); }
+    50% { box-shadow: 0 0 22px 3px var(--glow); }
+  }
+  @keyframes bc-spin { to { transform: rotate(360deg); } }
+  @keyframes bc-flicker {
+    0%, 100% { transform: scale(1, 1); opacity: 1; }
+    25% { transform: scale(1.07, 0.93); opacity: 0.82; }
+    50% { transform: scale(0.94, 1.08); opacity: 1; }
+    75% { transform: scale(1.04, 0.96); opacity: 0.9; }
+  }
+  @keyframes bc-sweep {
+    0% { transform: translateX(-160%) skewX(-20deg); }
+    55%, 100% { transform: translateX(620%) skewX(-20deg); }
+  }
+  @keyframes bc-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  @keyframes bc-glitch-a {
+    0% { text-shadow: -4px 0 var(--bc-pink), 4px 0 var(--bc-blue); transform: translateX(-3px); }
+    25% { text-shadow: 3px 0 var(--bc-pink), -3px 0 var(--bc-blue); transform: translateX(3px); }
+    50%, 100% { text-shadow: none; transform: none; }
+  }
+  @keyframes bc-glitch-b {
+    0% { text-shadow: -4px 0 var(--bc-pink), 4px 0 var(--bc-blue); transform: translateX(-3px); }
+    25% { text-shadow: 3px 0 var(--bc-pink), -3px 0 var(--bc-blue); transform: translateX(3px); }
+    50%, 100% { text-shadow: none; transform: none; }
+  }
+  ha-card.fx.enter .content { animation: bc-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  ha-card.fx .fx-pulse { animation: bc-pulse 2.4s ease-in-out infinite; }
+  ha-card.fx .fx-spin { animation: bc-spin 1.4s linear infinite; }
+  ha-card.fx .fx-flicker { animation: bc-flicker 0.8s ease-in-out infinite; transform-origin: 50% 90%; }
+  ha-card.fx .fx-blink { animation: bc-blink 1.4s ease-in-out infinite; }
+  ha-card.fx .fx-glitch-a { animation: bc-glitch-a 0.7s steps(3, end) both; }
+  ha-card.fx .fx-glitch-b { animation: bc-glitch-b 0.7s steps(3, end) both; }
+  ha-card:not(.fx) .fx-sweep { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    ha-card *, ha-card { animation: none !important; transition: none !important; }
+    .fx-sweep { display: none; }
+  }
 `;
 
 // HTML building blocks. Cards assemble these instead of writing their own
@@ -627,21 +854,35 @@ const ui = {
     return `data-service="${escapeHtml(service)}" data-data="${escapeHtml(JSON.stringify(data))}"`;
   },
 
-  header({ icon, title, accent = 'neutral', chip }) {
+  header({ icon, title, accent = 'neutral', chip, extra = '' }) {
     return `
       <div class="header accent-${accent}">
         <span class="icon"><ha-icon icon="${icon}"></ha-icon></span>
-        <span class="title">${escapeHtml(title)}</span>
+        ${title ? `<span class="title"><span>${escapeHtml(title)}</span></span>` : ''}
+        ${extra}
         ${chip ? ui.chip(chip) : ''}
       </div>`;
   },
 
-  status({ headline, reason, accent = 'neutral' }) {
+  // `icon` replaces the dot; `iconFx` animates it (fx-spin, fx-flicker).
+  status({ headline, reason, accent = 'neutral', icon, iconFx = '' }) {
+    const mark = icon
+      ? `<ha-icon class="headline-icon ${iconFx}" icon="${escapeHtml(icon)}"></ha-icon>`
+      : '<span class="dot"></span>';
     return `
       <div class="status accent-${accent}">
-        <div class="headline"><span class="dot"></span><span>${escapeHtml(headline)}</span></div>
+        <div class="headline">${mark}<span>${escapeHtml(headline)}</span></div>
         ${reason ? `<p class="reason">${escapeHtml(reason)}</p>` : ''}
       </div>`;
+  },
+
+  // Plus and minus buttons that change a thermostat's target.
+  steps({ entityId, target, step = 0.5, labels }) {
+    const button = (delta, sign, label) => `
+      <button type="button" class="step" aria-label="${escapeHtml(label)}"
+        ${ui.action('climate.set_temperature', { entity_id: entityId, temperature: Number((Math.round((target + delta) / step) * step).toFixed(2)) })}>
+        <span>${sign}</span></button>`;
+    return `<div class="steps">${button(-step, '−', labels.down)}${button(step, '+', labels.up)}</div>`;
   },
 
   row({ entityId, icon, name, state, value, accent = 'neutral', active = false }) {
@@ -766,18 +1007,37 @@ class BastideCard extends HTMLElement {
     return this.watchedEntities().some((id) => this._seen.get(id) !== this._hass.states[id]);
   }
 
+  // The accent of the coloured edge at the top of the card, in the HUD look.
+  edgeAccent() {
+    return 'orange';
+  }
+
   _render() {
     if (!this._config || !this._hass) return;
     const hass = this._hass;
     this._renderKey = this._currentKey();
     this._seen = new Map(this.watchedEntities().map((id) => [id, hass.states[id]]));
-    const hud = this.isConnected && themeVar(this, 'bastide-style') === 'hud';
-    if (hud) loadHudFonts(this);
-    const classes = [hass.themes?.darkMode ? 'dark' : '', hud ? 'hud' : ''].filter(Boolean).join(' ');
+    // `_hud` and `_fx` are read by the cards while they render.
+    this._hud = this.isConnected && themeVar(this, 'bastide-style') === 'hud';
+    this._fx = this._hud && themeVar(this, 'bastide-fx') !== 'none';
+    if (this._hud) loadHudFonts(this);
+    // The entrance animation only plays the first time the card is drawn.
+    const enter = this._fx && !this._entered;
+    if (this.isConnected) this._entered = true;
+    const classes = [
+      hass.themes?.darkMode ? 'dark' : '',
+      this._hud ? 'hud' : '',
+      this._fx ? 'fx' : '',
+      enter ? 'enter' : '',
+    ].filter(Boolean).join(' ');
+    const content = this.renderContent();
+    const edge = { hp: 'blue', boiler: 'orange', neutral: 'steel' }[this.edgeAccent()] || accentName(this.edgeAccent());
+    const chrome = this._hud ? '<span class="fx-edge"></span><span class="fx-sweep"></span>' : '';
     this.shadowRoot.innerHTML = `
       <style>${BASE_STYLES}${this.constructor.styles}</style>
-      <ha-card class="${classes}">
-        <div class="content">${this.renderContent()}</div>
+      <ha-card class="${classes}" style="--card-edge: var(--bc-${edge})">
+        ${chrome}
+        <div class="content">${content}</div>
       </ha-card>`;
   }
 }
@@ -813,6 +1073,7 @@ function readSource(hass, entityId, kind) {
 
   source.current = toNumber(attrs.current_temperature);
   source.target = toNumber(attrs.temperature);
+  source.step = toNumber(attrs.target_temp_step) || 0.5;
   if (state === 'off') {
     source.mode = 'off';
     return source;
@@ -947,6 +1208,142 @@ const CLIMATE_STYLES = `
     gap: 4px;
     color: var(--primary-text-color);
   }
+  .header { flex-wrap: wrap; }
+
+  /* Segmented gauge (HUD look): one cell per degree. */
+  .gauge-cells {
+    display: flex;
+    gap: 3px;
+    height: 16px;
+  }
+  .cell { flex: 1; transform: skewX(-14deg); }
+  .cell-boiler { background: color-mix(in srgb, var(--bc-boiler) 40%, transparent); }
+  .cell-band { background: color-mix(in srgb, var(--primary-text-color) 18%, transparent); }
+  .cell-hp { background: color-mix(in srgb, var(--bc-hp) 40%, transparent); }
+  .cell.current { background: var(--primary-text-color); }
+  ha-card.hud .gauge-value span {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 800;
+  }
+
+  /* Tiles layout: one tile per heat pump, a strip per boiler. */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--bc-surface);
+    border-top: 4px solid var(--divider-color);
+    transition: transform 0.2s ease, box-shadow 0.25s ease;
+  }
+  .tile.active { border-top-color: var(--accent); }
+  .tile-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .tile-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .tile-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--secondary-text-color);
+    --mdc-icon-size: 16px;
+  }
+  .tile.active .tile-mode { color: var(--accent); }
+  .tile-temp {
+    font-size: 40px;
+    line-height: 44px;
+    font-weight: 600;
+  }
+  .tile-unit {
+    font-size: 20px;
+    color: var(--secondary-text-color);
+  }
+  .tile-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .tile-target {
+    font-size: 13px;
+    color: var(--secondary-text-color);
+  }
+  .tile-target strong {
+    font-weight: 600;
+    color: var(--primary-text-color);
+  }
+  .strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--bc-surface);
+    border-top: 4px solid var(--divider-color);
+  }
+  .strip.active { border-top-color: var(--accent); }
+  .strip:not(.active) .icon {
+    color: var(--secondary-text-color);
+    background: var(--bc-surface);
+  }
+  .strip-text {
+    flex: 1;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  ha-card.hud .tile,
+  ha-card.hud .strip { border-radius: 0; }
+  ha-card.hud .tile-name {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  ha-card.hud .tile-mode {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  ha-card.hud .tile-temp {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 52px;
+    line-height: 52px;
+    font-style: italic;
+    font-weight: 800;
+  }
+  ha-card.hud .tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 30px -16px var(--accent);
+  }
 `;
 
 class BastideClimateCard extends BastideCard {
@@ -972,6 +1369,16 @@ class BastideClimateCard extends BastideCard {
         },
         { name: 'season_entity', selector: { entity: { filter: [{ domain: 'input_select' }, { domain: 'select' }, { domain: 'sensor' }] } } },
         { name: 'presence_entity', selector: { entity: {} } },
+        {
+          name: 'layout',
+          selector: {
+            select: {
+              mode: 'dropdown',
+              options: ['rows', 'tiles'].map((value) => ({ value, label: lookup(null, `editor.climate.layout_${value}`) || value })),
+            },
+          },
+        },
+        { name: 'central_mode_entity', selector: { entity: { filter: [{ domain: 'select' }, { domain: 'input_select' }] } } },
         {
           type: 'grid',
           name: '',
@@ -1010,7 +1417,87 @@ class BastideClimateCard extends BastideCard {
       config.heat_pump_threshold_entity,
       config.season_entity,
       config.presence_entity,
+      config.central_mode_entity,
     ].filter(Boolean);
+  }
+
+  edgeAccent() {
+    return this._accent || 'neutral';
+  }
+
+  // Heat pumps or boilers, with an optional display name each.
+  _sources(value, kind) {
+    return entityItems(value).map((item) => {
+      const source = readSource(this._hass, item.entity, kind);
+      if (item.name) source.name = item.name;
+      return source;
+    });
+  }
+
+  // The selector of the thermostats' common mode, as a row of buttons.
+  _centralModeHtml() {
+    const hass = this._hass;
+    const entityId = this._config.central_mode_entity;
+    const stateObj = entityId ? hass.states[entityId] : undefined;
+    if (!isUsable(stateObj)) return '';
+    const wanted = Array.isArray(this._config.central_modes) ? this._config.central_modes : null;
+    const options = (stateObj.attributes?.options || []).filter((option) => !wanted || wanted.includes(option));
+    const domain = entityId.split('.')[0];
+    const buttons = options.map((option) => {
+      const active = option === stateObj.state;
+      let label = option;
+      try {
+        if (typeof hass.formatEntityState === 'function') label = hass.formatEntityState(stateObj, option);
+      } catch (err) {
+        label = option;
+      }
+      return `<button type="button" class="seg${active ? ' active' : ''}" aria-pressed="${active ? 'true' : 'false'}"
+        ${ui.action(`${domain}.select_option`, { entity_id: entityId, option })}><span>${escapeHtml(label)}</span></button>`;
+    }).join('');
+    return `<div class="segmented accent-hp" role="group" aria-label="${escapeHtml(this.t('climate.central_mode'))}">${buttons}</div>`;
+  }
+
+  _tileHtml(s, unit) {
+    const hass = this._hass;
+    const t = (key, vars) => this.t(`climate.${key}`, vars);
+    const active = !['off', 'unavailable', 'missing'].includes(s.mode);
+    const moving = s.mode === 'heating' || s.mode === 'cooling';
+    const icon = s.mode === 'cooling' ? 'mdi:snowflake' : 'mdi:fan';
+    const target = s.target === null ? '' : formatTemperature(hass, s.target, unit);
+    const steps = s.target !== null && s.entityId.startsWith('climate.')
+      ? ui.steps({ entityId: s.entityId, target: s.target, step: s.step, labels: { down: t('lower'), up: t('raise') } })
+      : '';
+    return `
+      <div class="tile accent-${s.kind}${active ? ' active' : ''}">
+        <div class="tile-top">
+          <button type="button" class="tile-name" data-entity="${escapeHtml(s.entityId)}">${escapeHtml(s.name)}</button>
+          <span class="tile-mode"><ha-icon class="${moving ? 'fx-spin' : ''}" icon="${icon}"></ha-icon>${escapeHtml(t(s.mode))}</span>
+        </div>
+        <button type="button" class="tile-temp" data-entity="${escapeHtml(s.entityId)}">${s.current === null ? '—' : escapeHtml(formatNumber(hass, s.current, 1))}<span class="tile-unit">°</span></button>
+        <div class="tile-bottom">
+          <span class="tile-target">${target ? `${escapeHtml(t('target'))} <strong>${escapeHtml(target)}</strong>` : ''}</span>
+          ${steps}
+        </div>
+      </div>`;
+  }
+
+  _stripHtml(s, unit) {
+    const hass = this._hass;
+    const t = (key, vars) => this.t(`climate.${key}`, vars);
+    const active = !['off', 'unavailable', 'missing'].includes(s.mode);
+    const room = s.current === null ? '' : ` · ${t('room', { value: formatTemperature(hass, s.current, unit, 1) })}`;
+    const steps = s.target !== null && s.entityId.startsWith('climate.')
+      ? ui.steps({ entityId: s.entityId, target: s.target, step: s.step, labels: { down: t('lower'), up: t('raise') } })
+      : '';
+    return `
+      <div class="strip accent-${s.kind}${active ? ' active' : ''}">
+        <span class="icon"><ha-icon class="${s.mode === 'heating' ? 'fx-flicker' : ''}" icon="mdi:fire"></ha-icon></span>
+        <button type="button" class="strip-text" data-entity="${escapeHtml(s.entityId)}">
+          <span class="name">${escapeHtml(s.name)}</span>
+          <span class="state">${escapeHtml(sourceStatus(hass, s, unit) + room)}</span>
+        </button>
+        ${steps}
+      </div>`;
   }
 
   // The switch-over band: the boiler takes over below `low`, the heat pumps
@@ -1039,11 +1526,12 @@ class BastideClimateCard extends BastideCard {
     const unit = hass.config?.unit_system?.temperature || '°C';
     const title = config.title || t('title');
 
-    const heatPumps = entityList(config.heat_pumps).map((id) => readSource(hass, id, 'hp'));
-    const boilers = entityList(config.boilers).map((id) => readSource(hass, id, 'boiler'));
+    const heatPumps = this._sources(config.heat_pumps, 'hp');
+    const boilers = this._sources(config.boilers, 'boiler');
     const sources = [...heatPumps, ...boilers];
 
     if (!sources.length) {
+      this._accent = 'neutral';
       return ui.header({ icon: 'mdi:thermometer', title }) + ui.setup(t('setup'));
     }
 
@@ -1084,26 +1572,43 @@ class BastideClimateCard extends BastideCard {
     const seasonState = config.season_entity ? hass.states[config.season_entity] : undefined;
     const presenceState = config.presence_entity ? hass.states[config.presence_entity] : undefined;
 
-    const rows = sources.map((s) => ui.row({
-      entityId: s.entityId,
-      icon: s.kind === 'boiler' ? 'mdi:fire' : 'mdi:fan',
-      name: s.name,
-      state: sourceStatus(hass, s, unit),
-      value: s.current === null ? '' : formatTemperature(hass, s.current, unit, 1),
-      accent: s.kind,
-      active: !['off', 'unavailable', 'missing'].includes(s.mode),
-    }));
+    this._accent = accent;
+    let body;
+    if (config.layout === 'tiles') {
+      body = (heatPumps.length ? `<div class="tiles">${heatPumps.map((s) => this._tileHtml(s, unit)).join('')}</div>` : '')
+        + boilers.map((s) => this._stripHtml(s, unit)).join('');
+    } else {
+      body = ui.list(sources.map((s) => ui.row({
+        entityId: s.entityId,
+        icon: s.kind === 'boiler' ? 'mdi:fire' : 'mdi:fan',
+        name: s.name,
+        state: sourceStatus(hass, s, unit),
+        value: s.current === null ? '' : formatTemperature(hass, s.current, unit, 1),
+        accent: s.kind,
+        active: !['off', 'unavailable', 'missing'].includes(s.mode),
+      })));
+    }
+
+    // In the HUD look the headline gets a moving icon: a turning fan for the
+    // heat pumps or the air conditioning, a flickering flame for the boiler.
+    const statusIcon = this._hud ? {
+      hp_on: ['mdi:fan', 'fx-spin'],
+      boiler_on: ['mdi:fire', 'fx-flicker'],
+      both_on: ['mdi:fire', 'fx-flicker'],
+      cool_on: ['mdi:snowflake', 'fx-spin'],
+    }[status] : null;
 
     return [
       ui.header({
         icon: cooling ? 'mdi:snowflake' : 'mdi:thermometer',
         title,
         accent,
+        extra: this._centralModeHtml(),
         chip: isUsable(seasonState) ? { entityId: config.season_entity, text: formatState(hass, seasonState) } : null,
       }),
-      ui.status({ headline: t(status), reason, accent }),
+      ui.status({ headline: t(status), reason, accent, icon: statusIcon?.[0], iconFx: statusIcon?.[1] }),
       outdoor !== null && !cooling ? this._gaugeHtml({ outdoor, edges, unit: outdoorUnit, outdoorText, bandText }) : '',
-      ui.list(rows),
+      body,
       isUsable(presenceState)
         ? ui.footer({
           entityId: config.presence_entity,
@@ -1145,17 +1650,33 @@ class BastideClimateCard extends BastideCard {
       ? chip(edges.low, 'threshold_single')
       : chip(edges.low, 'threshold_boiler') + chip(edges.high, 'threshold_hp');
 
-    return `
-      <div class="gauge">
-        <div class="gauge-scale" role="img" aria-label="${escapeHtml(t('gauge_label', { outdoor: outdoorText, threshold: bandText }))}">
-          <div class="gauge-value" aria-hidden="true"><span style="left: ${valueLeft.toFixed(2)}%">${escapeHtml(outdoorText)}</span></div>
+    // HUD look: one slanted cell per degree, the current one blinking.
+    let bar;
+    if (this._hud) {
+      const cells = [];
+      for (let v = Math.floor(min); v < max; v += 1) {
+        const middle = v + 0.5;
+        const zone = middle < low ? 'boiler' : (middle < high ? 'band' : 'hp');
+        const current = outdoor >= v && outdoor < v + 1;
+        cells.push(`<span class="cell cell-${zone}${current ? ' current fx-blink' : ''}"></span>`);
+      }
+      bar = `<div class="gauge-cells" aria-hidden="true">${cells.join('')}</div>`;
+    } else {
+      bar = `
           <div class="gauge-bar" aria-hidden="true">
             <span class="zone-boiler" style="width: ${lowPct.toFixed(2)}%"></span>
             <span class="zone-band" style="width: ${(highPct - lowPct).toFixed(2)}%"></span>
             <span class="zone-hp"></span>
             ${ticks}
             <span class="marker" style="left: ${marker.toFixed(2)}%"></span>
-          </div>
+          </div>`;
+    }
+
+    return `
+      <div class="gauge">
+        <div class="gauge-scale" role="img" aria-label="${escapeHtml(t('gauge_label', { outdoor: outdoorText, threshold: bandText }))}">
+          <div class="gauge-value" aria-hidden="true"><span style="left: ${valueLeft.toFixed(2)}%">${this._hud ? '▼ ' : ''}${escapeHtml(outdoorText)}</span></div>
+          ${bar}
         </div>
         <div class="gauge-labels">
           <span class="zone-label">${escapeHtml(t('zone_boiler'))}</span>
@@ -1271,8 +1792,20 @@ const PRESENCE_STYLES = `
   ha-card.hud .mode {
     border-radius: 0;
     transform: skewX(-12deg);
+    transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.2s ease;
   }
+  ha-card.hud .mode:hover {
+    transform: skewX(-12deg) translateY(-3px);
+    filter: brightness(1.2);
+    box-shadow: 0 10px 22px -8px var(--accent);
+  }
+  ha-card.hud .mode:active {
+    transform: skewX(-12deg) translateY(1px) scale(0.97);
+    filter: brightness(1.35);
+  }
+  ha-card.hud .mode.active { --glow: color-mix(in srgb, var(--accent) 55%, transparent); }
   ha-card.hud .mode-inner { transform: skewX(12deg); }
+  .presence-mode { display: inline-block; }
   ha-card.hud .mode-name {
     font-family: var(--ha-font-family-heading, inherit);
     font-size: 15px;
@@ -1309,6 +1842,10 @@ class BastidePresenceCard extends BastideCard {
 
   getCardSize() {
     return 3;
+  }
+
+  edgeAccent() {
+    return this._accent || 'orange';
   }
 
   watchedEntities() {
@@ -1356,11 +1893,17 @@ class BastidePresenceCard extends BastideCard {
       ? ui.chip({ entityId: config.season_entity, text: formatState(hass, seasonState) })
       : '';
 
+    // When the mode changes, the big name glitches once. The card is redrawn
+    // from scratch, so the class is only set on the redraw that follows a change.
+    this._accent = currentAccent;
+    const glitch = this._lastMode !== undefined && this._lastMode !== current ? 'fx-glitch-a' : '';
+    this._lastMode = current;
+
     const modes = options.map((option, index) => {
       const style = this._modeStyle(option, index);
       const active = option === current;
       return `
-        <button type="button" class="mode accent-${style.accent}${active ? ' active' : ''}" aria-pressed="${active ? 'true' : 'false'}"
+        <button type="button" class="mode accent-${style.accent}${active ? ' active fx-pulse' : ''}" aria-pressed="${active ? 'true' : 'false'}"
           ${ui.action(`${domain}.select_option`, { entity_id: config.entity, option })}>
           <span class="mode-inner">
             <ha-icon icon="${escapeHtml(style.icon)}"></ha-icon>
@@ -1373,7 +1916,7 @@ class BastidePresenceCard extends BastideCard {
       <div class="presence">
         <div class="presence-now accent-${currentAccent}">
           <span class="label">${escapeHtml(title)}</span>
-          <button type="button" class="presence-mode" data-entity="${escapeHtml(config.entity)}">${escapeHtml(isUsable(stateObj) ? current : t('unavailable'))}</button>
+          <button type="button" class="presence-mode ${glitch}" data-entity="${escapeHtml(config.entity)}">${escapeHtml(isUsable(stateObj) ? current : t('unavailable'))}</button>
         </div>
         <div class="presence-side">${outdoorHtml}${seasonHtml}</div>
       </div>
@@ -1442,6 +1985,7 @@ class BastideEntitiesCard extends BastideCard {
     const config = this._config;
     const accent = accentName(config.color);
     const items = this._items();
+    this._accent = accent;
     const header = ui.header({ icon: config.icon || 'mdi:view-list', title: config.title || '', accent });
     if (!items.length) return header + ui.setup(this.t('entities.setup'));
 
@@ -1472,6 +2016,197 @@ class BastideEntitiesCard extends BastideCard {
 }
 
 /* ------------------------------------------------------------------------ */
+/* 4d. Agenda card                                                          */
+/* ------------------------------------------------------------------------ */
+
+const AGENDA_STYLES = `
+  .events {
+    display: flex;
+    flex-direction: column;
+  }
+  .event {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .event:last-child { border-bottom: 0; }
+  .event-date {
+    width: 52px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 0;
+    border-radius: 8px;
+    background: var(--bc-surface);
+    border-top: 3px solid var(--accent);
+  }
+  .event-day {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--secondary-text-color);
+  }
+  .event-num {
+    font-size: 20px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .event-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  ha-card.hud .event-date { border-radius: 0; }
+  ha-card.hud .event-num {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-style: italic;
+    font-weight: 800;
+  }
+  ha-card.hud .event {
+    transition: padding-left 0.2s ease;
+  }
+  ha-card.hud .event:hover { padding-left: 8px; }
+`;
+
+class BastideAgendaCard extends BastideCard {
+  static get styles() {
+    return AGENDA_STYLES;
+  }
+
+  static getConfigForm() {
+    return {
+      schema: [
+        { name: 'entities', selector: { entity: { multiple: true, filter: { domain: 'calendar' } } } },
+        { name: 'title', selector: { text: {} } },
+        {
+          name: 'color',
+          selector: {
+            select: {
+              mode: 'dropdown',
+              options: ACCENTS.map((value) => ({ value, label: lookup(null, `editor.colors.${value}`) || value })),
+            },
+          },
+        },
+        {
+          type: 'grid',
+          name: '',
+          schema: [
+            { name: 'days', selector: { number: { min: 1, max: 60, step: 1, mode: 'box' } } },
+            { name: 'max_events', selector: { number: { min: 1, max: 20, step: 1, mode: 'box' } } },
+          ],
+        },
+      ],
+      computeLabel: (schema) => (schema.name ? lookup(null, `editor.agenda.${schema.name}`) : undefined),
+    };
+  }
+
+  static getStubConfig(hass) {
+    const calendar = Object.keys(hass?.states || {}).find((id) => id.startsWith('calendar.'));
+    return calendar ? { entities: [calendar] } : {};
+  }
+
+  getCardSize() {
+    return 4;
+  }
+
+  edgeAccent() {
+    return accentName(this._config?.color, 'violet');
+  }
+
+  watchedEntities() {
+    return entityList(this._config?.entities);
+  }
+
+  set hass(hass) {
+    super.hass = hass;
+    this._maybeFetch();
+  }
+
+  setConfig(config) {
+    super.setConfig(config);
+    this._fetchedAt = 0;
+    this._maybeFetch();
+  }
+
+  // Events are read through the Home Assistant calendar API, at most every
+  // 10 minutes, or right away when a calendar starts or ends an event.
+  _maybeFetch() {
+    if (!this._hass || !this._config || this._fetching) return;
+    const calendars = entityList(this._config.entities);
+    if (!calendars.length) return;
+    const signature = calendars.map((id) => this._hass.states[id]?.last_changed).join('|');
+    const stale = Date.now() - (this._fetchedAt || 0) > 10 * 60 * 1000;
+    if (!stale && signature === this._signature) return;
+    this._signature = signature;
+    this._fetch(calendars);
+  }
+
+  async _fetch(calendars) {
+    this._fetching = true;
+    const days = toNumber(this._config.days) || 7;
+    const start = new Date();
+    const end = new Date(start.getTime() + days * 24 * 3600 * 1000);
+    const range = `start=${encodeURIComponent(start.toISOString())}&end=${encodeURIComponent(end.toISOString())}`;
+    try {
+      const lists = await Promise.all(calendars.map((id) => this._hass.callApi('GET', `calendars/${id}?${range}`)));
+      this._events = lists.flat().map((event) => ({
+        title: event.summary || '',
+        allDay: Boolean(event.start?.date && !event.start?.dateTime),
+        start: new Date(event.start?.dateTime || `${event.start?.date}T00:00:00`),
+        end: new Date(event.end?.dateTime || `${event.end?.date}T00:00:00`),
+        location: event.location || '',
+      })).sort((a, b) => a.start - b.start);
+      this._error = false;
+    } catch (err) {
+      this._error = true;
+    }
+    this._fetchedAt = Date.now();
+    this._fetching = false;
+    this._renderKey = '';
+    this._render();
+  }
+
+  renderContent() {
+    const hass = this._hass;
+    const config = this._config;
+    const t = (key, vars) => this.t(`agenda.${key}`, vars);
+    const accent = accentName(config.color, 'violet');
+    const header = ui.header({ icon: 'mdi:calendar', title: config.title || t('title'), accent });
+    if (!entityList(config.entities).length) return header + ui.setup(t('setup'));
+    if (this._error) return header + ui.setup(t('error'));
+    if (!this._events) return header;
+
+    const locale = hass.locale?.language || hass.language || 'en';
+    const day = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+    const time = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' });
+    const max = toNumber(config.max_events) || 5;
+    const events = this._events.slice(0, max);
+    if (!events.length) return header + ui.setup(t('empty', { days: toNumber(config.days) || 7 }));
+
+    const rows = events.map((event) => {
+      const when = event.allDay ? t('all_day') : `${time.format(event.start)} – ${time.format(event.end)}`;
+      const detail = event.location ? `${when} · ${event.location}` : when;
+      return `
+        <div class="event">
+          <div class="event-date">
+            <span class="event-day">${escapeHtml(day.format(event.start).replace('.', ''))}</span>
+            <span class="event-num">${event.start.getDate()}</span>
+          </div>
+          <div class="event-text">
+            <span class="name">${escapeHtml(event.title)}</span>
+            <span class="state">${escapeHtml(detail)}</span>
+          </div>
+        </div>`;
+    }).join('');
+    return `${header}<div class="events accent-${accent}">${rows}</div>`;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
 /* Registration                                                             */
 /* ------------------------------------------------------------------------ */
 
@@ -1493,6 +2228,12 @@ const BASTIDE_CARDS = [
     element: BastideEntitiesCard,
     name: 'Bastide Entities',
     description: 'A titled list of devices with on/off switches.',
+  },
+  {
+    type: 'bastide-agenda-card',
+    element: BastideAgendaCard,
+    name: 'Bastide Agenda',
+    description: 'The next events of one or more calendars.',
   },
 ];
 
