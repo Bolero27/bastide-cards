@@ -10,7 +10,7 @@
  *   4. The cards themselves.
  */
 
-const BASTIDE_VERSION = '0.6.0';
+const BASTIDE_VERSION = '0.6.1';
 const BASTIDE_REPO = 'https://github.com/Bolero27/bastide-cards';
 
 /* ------------------------------------------------------------------------ */
@@ -2748,14 +2748,48 @@ const CHART_STYLES = `
     font-size: 13px;
     font-weight: 700;
   }
-  .callout {
+  .balance-mark {
     position: absolute;
-    max-width: 240px;
-    padding: 6px 10px;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--primary-text-color);
+    border-radius: 50%;
+    box-sizing: border-box;
+    transform: translate(-50%, 50%);
+  }
+  .chart-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 10px 0 0 52px;
+    padding: 0;
+    list-style: none;
     font-size: 12px;
     line-height: 17px;
-    background: var(--primary-background-color);
-    border: 1px solid var(--divider-color);
+    color: var(--secondary-text-color);
+  }
+  .chart-notes li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .note-key {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    box-sizing: border-box;
+    transform: translateY(1px);
+  }
+  .note-key.line {
+    height: 2px;
+    width: 14px;
+    transform: translateY(-3px);
+    background: color-mix(in srgb, var(--primary-text-color) 55%, transparent);
+  }
+  .note-key.ring {
+    border: 2px solid var(--primary-text-color);
+    border-radius: 50%;
   }
   .strip-row {
     display: flex;
@@ -3514,15 +3548,20 @@ class BastideInsulationCard extends BastideCard {
     const dots = points.map((p) => `<span class="pt" style="left: ${pct(sx(p.x))}; top: ${pct(sy(p.y))};
       background: ${p.boiler ? 'var(--bc-boiler)' : 'var(--bc-hp)'}"></span>`).join('');
     let trend = '';
-    let callouts = '';
+    let marker = '';
+    let notes = '';
     if (balance !== null) {
       const yAtMin = fit.intercept + fit.slope * xMin;
       trend = svgPath(`M${(sx(xMin) * 10).toFixed(1)} ${sy(yAtMin).toFixed(2)} L${(sx(balance) * 10).toFixed(1)} ${sy(0).toFixed(2)}`,
         'color-mix(in srgb, var(--primary-text-color) 55%, transparent)');
       const wk = Math.round((-fit.slope * 1000 / 24) / 10) * 10;
-      callouts = `
-        <span class="callout" style="left: 3%; top: 4%">${escapeHtml(t('slope', { kwh: formatNumber(hass, -fit.slope, 1), wk }))}</span>
-        <span class="callout" style="left: ${pct(Math.min(96, sx(balance)))}; bottom: 14px; transform: translateX(-92%)">${escapeHtml(t('balance', { value: formatTemperature(hass, balance, unit, 0) }))}</span>`;
+      // The readings sit under the chart, never over it, so they cannot hide points.
+      marker = `<span class="balance-mark" style="left: ${pct(sx(balance))}"></span>`;
+      notes = `
+        <ul class="chart-notes">
+          <li><span class="note-key line"></span>${escapeHtml(t('slope', { kwh: formatNumber(hass, -fit.slope, 1), wk }))}</li>
+          <li><span class="note-key ring"></span>${escapeHtml(t('balance', { value: formatTemperature(hass, balance, unit, 0) }))}</li>
+        </ul>`;
     }
     const xTicks = niceTicks(xMin, xMax, 5).map((x) => `<span style="left: ${pct(sx(x))}; transform: translateX(-50%)">${escapeHtml(formatTemperature(hass, x, unit, 0))}</span>`).join('');
     return `
@@ -3533,10 +3572,11 @@ class BastideInsulationCard extends BastideCard {
           ticks: niceTicks(0, yMax, yMax > 40 ? 20 : 10).map((v) => ({ value: v, label: `${v} kWh` })),
           yOf: sy,
           paths: trend,
-          overlays: dots + callouts,
+          overlays: dots + marker,
           label: t('signature'),
         })}
         <div class="axis-x" aria-hidden="true">${xTicks}</div>
+        ${notes}
       </div>`;
   }
 
