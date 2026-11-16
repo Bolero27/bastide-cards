@@ -10,7 +10,7 @@
  *   4. The cards themselves.
  */
 
-const BASTIDE_VERSION = '0.6.1';
+const BASTIDE_VERSION = '0.7.0';
 const BASTIDE_REPO = 'https://github.com/Bolero27/bastide-cards';
 
 /* ------------------------------------------------------------------------ */
@@ -201,6 +201,24 @@ const STRINGS = {
     nav: {
       aria: 'Dashboard views',
     },
+    media: {
+      setup: 'Choose a media player in the card editor.',
+      nothing: 'Nothing playing',
+      off: 'Off',
+      paused: 'Paused',
+      unavailable: 'Speaker unavailable',
+      play: 'Play',
+      pause: 'Pause',
+      previous: 'Previous track',
+      next: 'Next track',
+      mute: 'Mute',
+      unmute: 'Unmute',
+      volume_down: 'Volume down',
+      volume_up: 'Volume up',
+      volume_to: 'Volume {value} %',
+      players: 'Speakers',
+      browse: 'Choose music',
+    },
     presence: {
       title: 'Home',
       outdoor: 'Outdoor',
@@ -239,6 +257,15 @@ const STRINGS = {
         title: 'Title',
         name: 'Label on the image',
         entities: 'Devices below the image',
+      },
+      media: {
+        entity: 'Main media player',
+        players: 'Other speakers (optional)',
+        players_help: 'Buttons to switch between speakers. Until one is picked, the card shows the one that is playing.',
+        title: 'Title',
+        color: 'Colour',
+        browse_path: 'Page to choose music (optional)',
+        browse_path_help: 'A path starting with /, for example the panel of your music app. Adds a button at the bottom of the card.',
       },
       colors: {
         orange: 'Orange', blue: 'Blue', pink: 'Pink', violet: 'Violet',
@@ -447,6 +474,24 @@ const STRINGS = {
     nav: {
       aria: 'Vues du dashboard',
     },
+    media: {
+      setup: 'Choisissez un lecteur multimédia dans l’éditeur de la carte.',
+      nothing: 'Rien en lecture',
+      off: 'Éteint',
+      paused: 'En pause',
+      unavailable: 'Enceinte indisponible',
+      play: 'Lecture',
+      pause: 'Pause',
+      previous: 'Morceau précédent',
+      next: 'Morceau suivant',
+      mute: 'Couper le son',
+      unmute: 'Remettre le son',
+      volume_down: 'Baisser le volume',
+      volume_up: 'Monter le volume',
+      volume_to: 'Volume {value} %',
+      players: 'Enceintes',
+      browse: 'Choisir la musique',
+    },
     presence: {
       title: 'Maison',
       outdoor: 'Extérieur',
@@ -485,6 +530,15 @@ const STRINGS = {
         title: 'Titre',
         name: 'Nom sur l’image',
         entities: 'Appareils sous l’image',
+      },
+      media: {
+        entity: 'Lecteur multimédia principal',
+        players: 'Autres enceintes (facultatif)',
+        players_help: 'Des boutons pour passer d’une enceinte à l’autre. Tant qu’aucune n’est choisie, la carte montre celle qui joue.',
+        title: 'Titre',
+        color: 'Couleur',
+        browse_path: 'Page pour choisir la musique (facultatif)',
+        browse_path_help: 'Un chemin commençant par /, par exemple le panneau de votre appli de musique. Ajoute un bouton en bas de la carte.',
       },
       colors: {
         orange: 'Orange', blue: 'Bleu', pink: 'Rose', violet: 'Violet',
@@ -4100,6 +4154,417 @@ class BastideNavCard extends BastideCard {
 }
 
 /* ------------------------------------------------------------------------ */
+/* 4j. Media card                                                           */
+/* ------------------------------------------------------------------------ */
+
+// media_player supported_features bits used by the card.
+const MEDIA_FEATURES = { PAUSE: 1, VOLUME_SET: 4, VOLUME_MUTE: 8, PREVIOUS: 16, NEXT: 32, PLAY: 16384 };
+const VOLUME_CELLS = 10;
+
+const MEDIA_STYLES = `
+  .player {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    width: 100%;
+  }
+  .art {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) var(--bc-tint), transparent);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    --mdc-icon-size: 40px;
+  }
+  .art img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .track {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+  }
+  .track-title {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .track-line {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--secondary-text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .eq {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+    margin-top: 6px;
+  }
+  .eq span {
+    width: 4px;
+    height: 30%;
+    background: var(--accent);
+  }
+  .eq.on span:nth-child(1) { height: 70%; }
+  .eq.on span:nth-child(2) { height: 100%; }
+  .eq.on span:nth-child(3) { height: 50%; }
+  .eq.on span:nth-child(4) { height: 85%; }
+  @keyframes bc-eq { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+  ha-card.fx .eq.on span { transform-origin: bottom; animation: bc-eq 0.9s ease-in-out infinite; }
+  ha-card.fx .eq.on span:nth-child(2) { animation-delay: -0.3s; }
+  ha-card.fx .eq.on span:nth-child(3) { animation-delay: -0.6s; }
+  ha-card.fx .eq.on span:nth-child(4) { animation-delay: -0.15s; }
+  .progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bar {
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--bc-surface);
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+  }
+  .times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--secondary-text-color);
+    font-variant-numeric: tabular-nums;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .controls .step { --mdc-icon-size: 22px; }
+  .controls .step.main {
+    width: 64px;
+    height: 48px;
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bc-on-accent);
+    --mdc-icon-size: 28px;
+  }
+  .volume {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .volume .step {
+    width: 36px;
+    height: 32px;
+    --mdc-icon-size: 18px;
+  }
+  .cells {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(${VOLUME_CELLS}, 1fr);
+    gap: 3px;
+  }
+  .cell {
+    height: 14px;
+    border-radius: 2px;
+    background: var(--bc-surface);
+  }
+  .cell.on { background: var(--accent); }
+  .cells.muted .cell.on { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .browse {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    --mdc-icon-size: 18px;
+  }
+  .browse > span,
+  ha-card.hud .browse > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  ha-card.hud .art { border-radius: 0; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); }
+  ha-card.hud .track-title {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 22px;
+    line-height: 26px;
+    font-style: italic;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  ha-card.hud .bar,
+  ha-card.hud .cell {
+    border-radius: 0;
+    transform: skewX(-12deg);
+  }
+  ha-card.hud .times {
+    font-family: var(--ha-font-family-heading, inherit);
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 700;
+  }
+  ha-card.hud .controls .step.main { box-shadow: 0 0 14px -2px color-mix(in srgb, var(--accent) 70%, transparent); }
+`;
+
+function formatDuration(seconds) {
+  const total = Math.max(0, Math.floor(seconds || 0));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = String(total % 60).padStart(2, '0');
+  return h ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
+}
+
+// Where the track is now, in seconds: Home Assistant only sends the position
+// when it changes, with the time it was read.
+function mediaPosition(stateObj) {
+  const a = stateObj?.attributes || {};
+  const position = toNumber(a.media_position);
+  if (position === null) return null;
+  let now = position;
+  if (stateObj.state === 'playing' && a.media_position_updated_at) {
+    now += (Date.now() - Date.parse(a.media_position_updated_at)) / 1000;
+  }
+  const duration = toNumber(a.media_duration);
+  return duration ? Math.min(Math.max(now, 0), duration) : Math.max(now, 0);
+}
+
+class BastideMediaCard extends BastideCard {
+  static get styles() {
+    return MEDIA_STYLES;
+  }
+
+  static getConfigForm() {
+    return {
+      schema: [
+        { name: 'entity', selector: { entity: { filter: { domain: 'media_player' } } } },
+        { name: 'players', selector: { entity: { multiple: true, filter: { domain: 'media_player' } } } },
+        { name: 'title', selector: { text: {} } },
+        {
+          name: 'color',
+          selector: {
+            select: {
+              mode: 'dropdown',
+              options: ACCENTS.map((value) => ({ value, label: lookup(null, `editor.colors.${value}`) || value })),
+            },
+          },
+        },
+        { name: 'browse_path', selector: { text: {} } },
+      ],
+      computeLabel: (schema) => (schema.name ? lookup(null, `editor.media.${schema.name}`) : undefined),
+      computeHelper: (schema) => (schema.name ? lookup(null, `editor.media.${schema.name}_help`) : undefined),
+    };
+  }
+
+  static getStubConfig(hass) {
+    const player = Object.keys(hass?.states || {}).find((id) => id.startsWith('media_player.'));
+    return player ? { entity: player } : {};
+  }
+
+  getCardSize() {
+    return 5;
+  }
+
+  edgeAccent() {
+    return accentName(this._config?.color, 'violet');
+  }
+
+  _players() {
+    return [...new Set([this._config.entity, ...entityList(this._config.players)].filter(Boolean))];
+  }
+
+  // The speaker chosen in the card, otherwise the one playing, otherwise the main one.
+  _current() {
+    const players = this._players();
+    if (players.includes(this._selected)) return this._selected;
+    return players.find((id) => this._hass.states[id]?.state === 'playing') || players[0];
+  }
+
+  watchedEntities() {
+    return this._players();
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    if (!this._timer) this._timer = setInterval(() => this._tick(), 1000);
+  }
+
+  disconnectedCallback() {
+    clearInterval(this._timer);
+    this._timer = null;
+  }
+
+  // Moves the progress bar every second without redrawing the card.
+  _tick() {
+    if (!this._hass || !this._config) return;
+    const stateObj = this._hass.states[this._current()];
+    if (stateObj?.state !== 'playing') return;
+    const position = mediaPosition(stateObj);
+    const duration = toNumber(stateObj.attributes?.media_duration);
+    const fill = this.shadowRoot.querySelector('.bar-fill');
+    const now = this.shadowRoot.querySelector('.time-now');
+    if (fill && duration && position !== null) fill.style.width = `${(position / duration) * 100}%`;
+    if (now && position !== null) now.textContent = formatDuration(position);
+  }
+
+  onLocal(action) {
+    if (action.startsWith('player:')) {
+      this._selected = action.slice(7);
+      this._renderKey = '';
+      this._render();
+      return;
+    }
+    if (action.startsWith('nav:')) {
+      const path = action.slice(4);
+      if (!path.startsWith('/') || path === window.location.pathname) return;
+      window.history.pushState(null, '', path);
+      window.dispatchEvent(new CustomEvent('location-changed', { detail: { replace: false } }));
+    }
+  }
+
+  _controls(entityId, stateObj) {
+    const features = toNumber(stateObj.attributes?.supported_features) || 0;
+    const has = (bit) => (features & bit) === bit;
+    const playing = stateObj.state === 'playing';
+    const button = (service, icon, label, main = false) => `
+      <button type="button" class="step${main ? ' main' : ''}" aria-label="${escapeHtml(label)}"
+        ${ui.action(`media_player.${service}`, { entity_id: entityId })}><ha-icon icon="${icon}"></ha-icon></button>`;
+    const buttons = [];
+    if (has(MEDIA_FEATURES.PREVIOUS)) buttons.push(button('media_previous_track', 'mdi:skip-previous', this.t('media.previous')));
+    if (has(MEDIA_FEATURES.PAUSE) || has(MEDIA_FEATURES.PLAY)) {
+      buttons.push(button('media_play_pause', playing ? 'mdi:pause' : 'mdi:play', this.t(playing ? 'media.pause' : 'media.play'), true));
+    }
+    if (has(MEDIA_FEATURES.NEXT)) buttons.push(button('media_next_track', 'mdi:skip-next', this.t('media.next')));
+    return buttons.length ? `<div class="controls">${buttons.join('')}</div>` : '';
+  }
+
+  _volume(entityId, stateObj) {
+    const a = stateObj.attributes || {};
+    const features = toNumber(a.supported_features) || 0;
+    const level = toNumber(a.volume_level);
+    if (!(features & MEDIA_FEATURES.VOLUME_SET) || level === null) return '';
+    const muted = Boolean(a.is_volume_muted);
+    const set = (value) => ui.action('media_player.volume_set', {
+      entity_id: entityId,
+      volume_level: Number(Math.min(1, Math.max(0, value)).toFixed(2)),
+    });
+    const lit = Math.round(level * VOLUME_CELLS);
+    const cells = Array.from({ length: VOLUME_CELLS }, (_, i) => `
+      <button type="button" class="cell${i < lit ? ' on' : ''}" aria-label="${escapeHtml(this.t('media.volume_to', { value: (i + 1) * 10 }))}"
+        ${set((i + 1) / VOLUME_CELLS)}></button>`).join('');
+    const mute = features & MEDIA_FEATURES.VOLUME_MUTE
+      ? `<button type="button" class="step" aria-label="${escapeHtml(this.t(muted ? 'media.unmute' : 'media.mute'))}"
+          ${ui.action('media_player.volume_mute', { entity_id: entityId, is_volume_muted: !muted })}>
+          <ha-icon icon="${muted ? 'mdi:volume-off' : 'mdi:volume-high'}"></ha-icon></button>`
+      : '<span class="icon"><ha-icon icon="mdi:volume-high"></ha-icon></span>';
+    return `
+      <div class="volume">
+        ${mute}
+        <button type="button" class="step" aria-label="${escapeHtml(this.t('media.volume_down'))}" ${set(level - 0.05)}><ha-icon icon="mdi:minus"></ha-icon></button>
+        <div class="cells${muted ? ' muted' : ''}">${cells}</div>
+        <button type="button" class="step" aria-label="${escapeHtml(this.t('media.volume_up'))}" ${set(level + 0.05)}><ha-icon icon="mdi:plus"></ha-icon></button>
+      </div>`;
+  }
+
+  renderContent() {
+    const config = this._config;
+    const hass = this._hass;
+    const accent = accentName(config.color, 'violet');
+    const players = this._players();
+    if (!players.length) return ui.header({ icon: 'mdi:music', title: config.title || '', accent }) + ui.setup(this.t('media.setup'));
+
+    const entityId = this._current();
+    const stateObj = hass.states[entityId];
+    const playerName = (id) => hass.states[id]?.attributes?.friendly_name || id;
+    const header = ui.header({
+      icon: 'mdi:music',
+      title: config.title || '',
+      accent,
+      chip: { entityId, text: playerName(entityId), label: playerName(entityId) },
+    });
+    const switcher = players.length > 1
+      ? `<div class="segmented" role="group" aria-label="${escapeHtml(this.t('media.players'))}">${players.map((id) => `
+          <button type="button" class="seg accent-${accent}${id === entityId ? ' active' : ''}" aria-pressed="${id === entityId}"
+            data-local="player:${escapeHtml(id)}"><span>${escapeHtml(playerName(id))}</span></button>`).join('')}</div>`
+      : '';
+    const browse = typeof config.browse_path === 'string' && config.browse_path.startsWith('/')
+      ? `<button type="button" class="seg browse accent-${accent}" data-local="nav:${escapeHtml(config.browse_path)}">
+          <span><ha-icon icon="mdi:music-box-multiple"></ha-icon>${escapeHtml(this.t('media.browse'))}</span></button>`
+      : '';
+
+    if (!isUsable(stateObj)) {
+      return header + switcher
+        + ui.status({ headline: this.t(stateObj ? 'media.unavailable' : 'entities.missing'), accent: 'neutral', icon: 'mdi:speaker-off' })
+        + browse;
+    }
+
+    const a = stateObj.attributes || {};
+    const playing = stateObj.state === 'playing';
+    const active = playing || stateObj.state === 'paused';
+    const title = active && a.media_title ? a.media_title : this.t(stateObj.state === 'off' ? 'media.off' : 'media.nothing');
+    const artist = active ? (a.media_artist || a.media_album_artist || '') : '';
+    const album = active ? (a.media_album_name || '') : '';
+    const lines = [artist, album].filter(Boolean);
+    if (stateObj.state === 'paused') lines.push(this.t('media.paused'));
+    const picture = active ? a.entity_picture : null;
+
+    const player = `
+      <button type="button" class="player accent-${accent}" data-entity="${escapeHtml(entityId)}">
+        <span class="art">${picture
+          ? `<img src="${escapeHtml(picture)}" alt="">`
+          : '<ha-icon icon="mdi:music-note"></ha-icon>'}</span>
+        <span class="track">
+          <span class="track-title">${escapeHtml(title)}</span>
+          ${lines.map((line) => `<span class="track-line">${escapeHtml(line)}</span>`).join('')}
+          <span class="eq${playing ? ' on' : ''}" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        </span>
+      </button>`;
+
+    const duration = toNumber(a.media_duration);
+    const position = mediaPosition(stateObj);
+    const progress = active && duration && position !== null
+      ? `<div class="progress accent-${accent}">
+          <div class="bar"><div class="bar-fill" style="width: ${(position / duration) * 100}%"></div></div>
+          <div class="times"><span class="time-now">${formatDuration(position)}</span><span>${formatDuration(duration)}</span></div>
+        </div>`
+      : '';
+
+    const controls = stateObj.state === 'off' ? '' : this._controls(entityId, stateObj);
+    const volume = stateObj.state === 'off' ? '' : this._volume(entityId, stateObj);
+    return header + switcher + player + progress
+      + (controls ? `<div class="accent-${accent}">${controls}</div>` : '')
+      + (volume ? `<div class="accent-${accent}">${volume}</div>` : '')
+      + browse;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
 /* Registration                                                             */
 /* ------------------------------------------------------------------------ */
 
@@ -4151,6 +4616,12 @@ const BASTIDE_CARDS = [
     element: BastideNavCard,
     name: 'Bastide Navigation',
     description: 'Tabs to move between dashboard views, at the bottom of the screen on phones.',
+  },
+  {
+    type: 'bastide-media-card',
+    element: BastideMediaCard,
+    name: 'Bastide Media',
+    description: 'What a speaker is playing, with artwork, progress, playback and volume controls, and a switch between speakers.',
   },
 ];
 

@@ -12,6 +12,7 @@ All cards share one look, so they sit together naturally on a dashboard. Every c
 | [Agenda](#agenda-card) | `custom:bastide-agenda-card` | The next events of one or more calendars. |
 | [Camera](#camera-card) | `custom:bastide-camera-card` | A camera image refreshed every few seconds, with related devices below it. |
 | [Navigation](#navigation-card) | `custom:bastide-nav-card` | Tabs between dashboard views, at the bottom of the screen on phones. |
+| [Media](#media-card) | `custom:bastide-media-card` | What a speaker is playing, with artwork, progress, playback and volume, and a switch between speakers. |
 | [Heating check](#heating-check-card) | `custom:bastide-heating-card` | Is the heating automation doing its job? Outdoor temperature against the thresholds, heat source, rooms against their targets, and a checked log. |
 | [Insulation](#insulation-card) | `custom:bastide-insulation-card` | How the home reacts to cold and heat, with the methods and their sources. |
 
@@ -196,6 +197,30 @@ items:
     path: /my-dashboard/heating
     color: orange
 ```
+
+## Media card
+
+What a speaker or any `media_player` is playing: artwork, title, artist and album, a progress bar that moves every second, previous / play-pause / next, and a ten-step volume bar (tap a step to jump to it). Buttons only appear when the player supports them. Tap the artwork for the player's details.
+
+With several speakers in `players`, buttons switch between them. Until one is picked, the card shows the speaker that is playing.
+
+```yaml
+type: custom:bastide-media-card
+entity: media_player.kitchen_speaker
+players:
+  - media_player.living_room_speaker
+title: Music
+color: violet
+browse_path: /music-app
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `entity` | — | Main media player. |
+| `players` | — | Other speakers to switch between (optional). |
+| `title` | — | Card title. |
+| `color` | `violet` | Accent colour. |
+| `browse_path` | — | A path starting with `/` (for example the panel of your music app). Adds a "Choose music" button. |
 
 ## Heating check card
 
